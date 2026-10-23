@@ -140,6 +140,33 @@ export function createHogwartsCastle() {
   flameGlow.position.set(0, 2.5, -18);
   greatHall.add(flameGlow);
 
+  // 4 Hogwarts House Tapestry Banners hanging on Great Hall walls
+  const houseBanners = [
+    { color: 0x740001, fringe: 0xf7b32b, x: -10.8, z: -10 }, // Gryffindor
+    { color: 0x1a472a, fringe: 0xcccccc, x: -10.8, z: 10 },  // Slytherin
+    { color: 0x0e1a40, fringe: 0xc49b45, x: 10.8, z: -10 },  // Ravenclaw
+    { color: 0xecb939, fringe: 0x222222, x: 10.8, z: 10 }    // Hufflepuff
+  ];
+
+  houseBanners.forEach(b => {
+    const bannerGroup = new THREE.Group();
+    bannerGroup.position.set(b.x, 8, b.z);
+
+    const bannerGeo = new THREE.BoxGeometry(0.1, 7.5, 3.2);
+    const bannerMat = new THREE.MeshToonMaterial({ color: b.color });
+    const banner = new THREE.Mesh(bannerGeo, bannerMat);
+    bannerGroup.add(banner);
+
+    // Gold/accent fringe trimming at bottom
+    const fringeGeo = new THREE.BoxGeometry(0.12, 0.45, 3.2);
+    const fringeMat = new THREE.MeshToonMaterial({ color: b.fringe });
+    const fringe = new THREE.Mesh(fringeGeo, fringeMat);
+    fringe.position.y = -3.8;
+    bannerGroup.add(fringe);
+
+    greatHall.add(bannerGroup);
+  });
+
   // FLOATING CANDLES (Enchanted floating candles inside Great Hall)
   const candleCount = 28;
   const candleMat = new THREE.MeshBasicMaterial({ color: 0xfffbe8 });

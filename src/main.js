@@ -273,6 +273,16 @@ class HogwartsGame {
     if (dialog) {
       this.dialogManager.showDialog(dialog);
     } else {
+      // Check if near Nimbus 2000 Broom on Quidditch pitch (130, 1.2, -120)
+      const dPitch = this.player.position.distanceTo(new THREE.Vector3(130, 1.2, -120));
+      if (dPitch < 8.5) {
+        soundSynth.playSpellPatronus();
+        this.player.moveSpeed = 19.5; // High speed broom surge!
+        setTimeout(() => { this.player.moveSpeed = 11.5; }, 10000);
+        this.dialogManager.showToast('निम्बस २०००!', 'You mounted the Nimbus 2000! Flying speed boosted across the pitch!', 3500);
+        return;
+      }
+
       // Check if near platform 9 3/4 barrier
       if (this.player.position.distanceTo(new THREE.Vector3(-180, 1.2, -74)) < 8.0) {
         this.dialogManager.showToast('प्लेटफ़ॉर्म ९¾', 'You stand before the enchanted barrier to the 5972 Express!', 3000);
@@ -315,12 +325,19 @@ class HogwartsGame {
       this.dialogManager.showToast('गोल्डन स्निच!', 'You caught the Golden Snitch! +150 Points for Gryffindor!', 4500);
     }
 
-    // 5. Proximity Prompt Check for NPCs
+    // 5. Proximity Prompt Check for NPCs, Broom & Water
     const nearbyDialog = this.npcManager.checkProximity(this.player.position, 6.0);
     if (nearbyDialog) {
       this.dialogManager.setPrompt(`Press <b>[E]</b> to talk to ${nearbyDialog.who}`);
     } else {
-      this.dialogManager.setPrompt(null);
+      const dPitch = this.player.position.distanceTo(new THREE.Vector3(130, 1.2, -120));
+      if (dPitch < 8.0) {
+        this.dialogManager.setPrompt(`Press <b>[E]</b> to Mount Nimbus 2000 Broomstick 🧹`);
+      } else if (this.player.isSwimming) {
+        this.dialogManager.setPrompt(`🏊 Swimming in the Black Lake · <kbd>Shift</kbd> fast stroke`);
+      } else {
+        this.dialogManager.setPrompt(null);
+      }
     }
 
     // 6. Update HUD Coordinates & FPS ticker

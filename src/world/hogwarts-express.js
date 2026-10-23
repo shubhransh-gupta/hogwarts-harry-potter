@@ -74,6 +74,17 @@ export function createHogwartsExpress(isMovingInstance = false) {
   chimneyCap.position.set(3.8, 4.4, 0);
   engine.add(chimneyCap);
 
+  // Volumetric Rising Steam Puffs
+  const steamPuffs = [];
+  const puffMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthWrite: false });
+  for (let i = 0; i < 7; i++) {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.35 + i * 0.16, 8, 8), puffMat);
+    puff.position.set(3.8 - i * 0.45, 4.6 + i * 0.65, (Math.random() - 0.5) * 0.3);
+    puff.userData = { baseY: 4.6, life: i / 7 };
+    engine.add(puff);
+    steamPuffs.push(puff);
+  }
+
   // Steam Dome & Brass Safety Valve
   const steamDomeGeo = new THREE.SphereGeometry(0.45, 16, 12);
   steamDomeGeo.scale(1, 1.2, 1);
@@ -321,6 +332,19 @@ export function createHogwartsExpress(isMovingInstance = false) {
       steamPositions[i * 3 + 1] = p.y;
       steamPositions[i * 3 + 2] = p.z;
     }
+    if (steamPuffs && steamPuffs.length > 0) {
+      steamPuffs.forEach(p => {
+        p.userData.life += delta * 0.45;
+        if (p.userData.life > 1.0) p.userData.life = 0;
+        const prog = p.userData.life;
+        p.position.y = p.userData.baseY + prog * 3.8;
+        p.position.x = 3.8 - prog * 2.8;
+        const s = 1.0 + prog * 1.8;
+        p.scale.set(s, s, s);
+        p.material.opacity = Math.max(0, 0.45 * (1 - prog));
+      });
+    }
+
     steamGeo.setAttribute('position', new THREE.BufferAttribute(steamPositions, 3));
     steamGeo.attributes.position.needsUpdate = true;
   };

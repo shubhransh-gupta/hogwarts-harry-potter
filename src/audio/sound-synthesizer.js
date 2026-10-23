@@ -254,6 +254,28 @@ class SoundSynthesizer {
 
   // --- Sound Effects (SFX) ---
 
+  // Water splash / swimming stroke audio
+  playWaterSplash() {
+    if (!this.ctx) return;
+    this.resume();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.28);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.2, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+
   // Lumos Spell: Pure glowing chime and warm hum
   playSpellLumos(active = true) {
     if (!this.ctx) return;

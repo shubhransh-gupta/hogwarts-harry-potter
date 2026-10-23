@@ -162,18 +162,36 @@ export class WorldManager {
     this.scene.add(this.weatherPoints);
   }
 
+  // Query water presence for swimming mechanics
+  isWaterAt(x, z) {
+    const distToLake = Math.hypot(x - 60, z - (-50));
+    if (distToLake < 62) {
+      return {
+        isWater: true,
+        surfaceY: -0.6,
+        depth: Math.max(0.5, (1 - distToLake / 62) * 5.0)
+      };
+    }
+    return { isWater: false, surfaceY: -0.6, depth: 0 };
+  }
+
   // ACCURATE MULTI-TIER GROUND HEIGHT SYSTEM
   // Respects current player elevation so walking underneath viaducts/bridges doesn't jump to the sky
   getGroundHeight(x, z, currentY = 1e9) {
     // 1. Calculate natural valley terrain base height
     let baseTerrain = 0.2;
-    const distToLake = Math.hypot(x - 60, z + 50);
-    if (distToLake < 65) {
-      baseTerrain = -0.5;
+    const distToLake = Math.hypot(x - 60, z - (-50));
+    if (distToLake < 64) {
+      // Deep lake bed below water level (water is at -0.6m)
+      const lakeT = distToLake / 64;
+      baseTerrain = -5.5 + lakeT * 4.9;
     } else {
       let y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
       const distFromCenter = Math.hypot(x, z);
-      if (distFromCenter > 130 && Math.hypot(x - (-200), z - (-100)) > 110) {
+      const distToStation = Math.hypot(x - (-200), z - (-100));
+      const distToPitch = Math.hypot((x - 130) / 1.6, z - (-120));
+
+      if (distFromCenter > 130 && distToStation > 110 && distToPitch > 65) {
         y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
       }
       baseTerrain = Math.max(0.2, y);
@@ -274,9 +292,15 @@ export class WorldManager {
       }
     }
 
-    // 5. Quidditch Pitch (around x: 130, z: -120)
-    if (Math.hypot((x - 130) / 1.6, z - (-120)) < 42) {
+    // 5. Quidditch Pitch & Amphitheater Bowl (centered at x: 130, z: -120)
+    const distToPitch = Math.hypot((x - 130) / 1.6, z - (-120));
+    if (distToPitch <= 46) {
+      // Turf playing field level
       return 1.2;
+    } else if (distToPitch <= 68) {
+      // Spectator amphitheater bowl climbing smoothly up to hills
+      const bowlT = (distToPitch - 46) / 22;
+      return 0.4 + bowlT * 3.2;
     }
 
     // 6. Hagrid's Hut & Pumpkin Patch

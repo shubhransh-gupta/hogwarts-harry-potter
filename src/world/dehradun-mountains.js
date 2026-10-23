@@ -60,18 +60,32 @@ export function createDehradunMountains() {
       continue;
     }
 
-    // 2. Lake depression around (60, -50)
+    // 2. Quidditch Pitch Amphitheater Bowl (centered at x: 130, z: -120)
+    // Eliminates being submerged inside ground polygons!
+    const distToPitch = Math.hypot((x - 130) / 1.6, z - (-120));
+    if (distToPitch < 46) {
+      pos.setY(i, 0.4);
+      continue;
+    } else if (distToPitch < 68) {
+      const bowlT = (distToPitch - 46) / 22;
+      pos.setY(i, 0.4 + bowlT * 3.2);
+      continue;
+    }
+
+    // 3. The Black Lake (Great Lake) basin around (60, -50)
     const distToLake = Math.hypot(x - 60, z + 50);
     let y = 0;
 
-    if (distToLake < 65) {
-      y = -4.0 + (distToLake / 65) * 4.0;
+    if (distToLake < 64) {
+      // Natural deep lake bed bowl sloping to -5.5m deep
+      const lakeT = distToLake / 64;
+      y = -5.5 + lakeT * 4.9;
     } else {
       // Gentle rolling Himalayan foothills
       y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
       // Slopes rising towards outer perimeter
       const distFromCenter = Math.hypot(x, z);
-      if (distFromCenter > 130 && distToStation > 110) {
+      if (distFromCenter > 130 && distToStation > 110 && distToPitch > 65) {
         y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
       }
     }
@@ -269,7 +283,49 @@ export function createDehradunMountains() {
   }
   landscapeGroup.add(treeGroup);
 
-  // === 6. FLOATING MOUNTAIN MIST / CLOUDS ===
+  // === 6. THE WHOMPING WILLOW (Ancient aggressive magical tree) ===
+  const willowGroup = new THREE.Group();
+  willowGroup.position.set(-20, 0.4, 65);
+  willowGroup.name = 'WhompingWillow';
+
+  const willowWoodMat = new THREE.MeshToonMaterial({ color: 0x2e1e14 });
+  const willowFoliageMat = new THREE.MeshToonMaterial({ color: 0x3d4722 });
+
+  // Gnarled wide root base & trunk
+  const willowTrunk = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 3.4, 6.5, 10), willowWoodMat);
+  willowTrunk.position.y = 3.25;
+  willowGroup.add(willowTrunk);
+
+  // Knot cluster
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8), willowWoodMat);
+  knot.position.y = 6.2;
+  willowGroup.add(knot);
+
+  // 5 Massive thrashing boughs/branches
+  const willowBranches = [];
+  const bAngles = [0, 1.25, 2.5, 3.75, 5.0];
+  bAngles.forEach((ang, idx) => {
+    const branchArm = new THREE.Group();
+    branchArm.position.set(0, 6.2, 0);
+    branchArm.rotation.y = ang;
+
+    const bMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.7, 5.5, 8), willowWoodMat);
+    bMesh.position.set(2.2, 1.8, 0);
+    bMesh.rotation.z = -Math.PI / 4;
+    branchArm.add(bMesh);
+
+    // Willow leaf clumps
+    const clump = new THREE.Mesh(new THREE.SphereGeometry(1.4, 8, 6), willowFoliageMat);
+    clump.position.set(4.2, 3.2, 0);
+    branchArm.add(clump);
+
+    willowGroup.add(branchArm);
+    willowBranches.push({ arm: branchArm, speed: 1.2 + idx * 0.35 });
+  });
+
+  landscapeGroup.add(willowGroup);
+
+  // === 7. FLOATING MOUNTAIN MIST / CLOUDS ===
   const cloudGroup = new THREE.Group();
   const cloudCount = 14;
   const cloudMat = new THREE.MeshBasicMaterial({
@@ -298,8 +354,8 @@ export function createDehradunMountains() {
   }
   landscapeGroup.add(cloudGroup);
 
-  // Update animation loop for viaduct train & drifting clouds
-  landscapeGroup.userData.update = function (delta) {
+  // Update animation loop for viaduct train, Whomping Willow & drifting clouds
+  landscapeGroup.userData.update = function (delta, elapsed = 0) {
     if (viaductTrain) {
       viaductTrain.position.x += delta * 14;
       if (viaductTrain.position.x > deckLength / 2 + 10) {
@@ -308,6 +364,14 @@ export function createDehradunMountains() {
       if (viaductTrain.userData.update) {
         viaductTrain.userData.update(delta);
       }
+    }
+
+    // Animate Whomping Willow branches thrashing & swaying
+    if (willowBranches && willowBranches.length > 0) {
+      willowBranches.forEach(b => {
+        b.arm.rotation.x = Math.sin(elapsed * b.speed) * 0.22;
+        b.arm.rotation.z = Math.cos(elapsed * (b.speed * 0.8)) * 0.18;
+      });
     }
 
     for (let i = 0; i < cloudMeshes.length; i++) {

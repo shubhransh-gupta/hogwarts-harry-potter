@@ -111,6 +111,51 @@ export function createQuidditchPitch() {
     pitchGroup.add(tower);
   });
 
+  // === 4. NIMBUS 2000 BROOMSTICK HOVERING AT CENTER FIELD ===
+  const broomGroup = new THREE.Group();
+  broomGroup.position.set(0, 1.8, 0); // Hovering above center turf
+  broomGroup.name = 'Nimbus2000';
+
+  // Polished mahogany broom handle
+  const handleGeo = new THREE.CylinderGeometry(0.04, 0.05, 3.2, 8);
+  handleGeo.rotateX(Math.PI / 2);
+  const handleMat = new THREE.MeshToonMaterial({ color: 0x4a2810 });
+  const handle = new THREE.Mesh(handleGeo, handleMat);
+  broomGroup.add(handle);
+
+  // Golden bands
+  [-0.6, -0.4, 0.4].forEach(z => {
+    const bandGeo = new THREE.TorusGeometry(0.06, 0.015, 6, 12);
+    const band = new THREE.Mesh(bandGeo, goldHoopMat);
+    band.position.z = z;
+    broomGroup.add(band);
+  });
+
+  // Twig bristles tail
+  const brushGeo = new THREE.ConeGeometry(0.25, 0.9, 10);
+  brushGeo.rotateX(-Math.PI / 2);
+  const brushMat = new THREE.MeshToonMaterial({ color: 0xd4a359 });
+  const brush = new THREE.Mesh(brushGeo, brushMat);
+  brush.position.z = -1.8;
+  broomGroup.add(brush);
+
+  // Golden glow aura
+  const broomLight = new THREE.PointLight(0xf7b32b, 1.8, 8);
+  broomLight.position.set(0, 0.2, 0);
+  broomGroup.add(broomLight);
+
+  pitchGroup.add(broomGroup);
+  pitchGroup.userData.nimbusBroom = broomGroup;
+
+  // Animation update loop for hovering Nimbus 2000
+  pitchGroup.userData.update = function (delta, elapsed) {
+    if (broomGroup) {
+      broomGroup.position.y = 1.8 + Math.sin(elapsed * 2.5) * 0.12;
+      broomGroup.rotation.y = Math.sin(elapsed * 0.9) * 0.25;
+      broomGroup.rotation.z = Math.cos(elapsed * 1.5) * 0.06;
+    }
+  };
+
   // Position Quidditch Pitch in the Dehradun valley bowl
   pitchGroup.position.set(130, 0, -120);
 

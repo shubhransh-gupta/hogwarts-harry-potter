@@ -2,6 +2,7 @@
 // Stylized 3D wizard boy with Hogwarts robe, scarf, animated wand, grounded physics & drop shadow
 
 import * as THREE from 'three';
+import { soundSynth } from '../audio/sound-synthesizer.js';
 
 export class Player {
   constructor(scene, camera) {
@@ -12,6 +13,8 @@ export class Player {
     this.position = new THREE.Vector3(-200, 1.0, -96);
     this.velocity = new THREE.Vector3();
     this.isGrounded = true;
+    this.isSwimming = false;
+    this.swimStrokeTimer = 0;
     this.moveSpeed = 11.5;
     this.sprintMultiplier = 1.85;
     this.isSprinting = false;
@@ -134,6 +137,7 @@ export class Player {
     rightArm.position.set(0, -0.32, 0.2);
     rightArm.rotation.x = -Math.PI / 3.8;
     rightArmGroup.add(rightArm);
+    this.rightArm = rightArm;
 
     // Right hand
     const handGeo = new THREE.SphereGeometry(0.09, 8, 8);
@@ -196,17 +200,109 @@ export class Player {
     if (lookAngle !== null) {
       this.cameraYaw = lookAngle;
     }
+    this.updateCamera();
   }
 
   jump() {
-    if (this.isGrounded) {
+    if (this.isGrounded && !this.isSwimming) {
       this.velocity.y = 10.0;
       this.isGrounded = false;
     }
   }
 
   update(delta, elapsed, worldManager) {
-    // 1. Horizontal movement relative to camera orientation
+    // 1. Water & Swimming Engine (Black Lake / Great Lake)
+    const water = worldManager ? worldManager.isWaterAt(this.position.x, this.position.z) : { isWater: false };
+
+    if (water.isWater) {
+      if (!this.isSwimming) {
+        this.isSwimming = true;
+        soundSynth.playWaterSplash();
+      }
+
+      // Buoyant water flotation: bobs smoothly on water surface
+      const targetSwimY = water.surfaceY - 0.75 + Math.sin(elapsed * 2.5) * 0.06;
+      this.position.y += (targetSwimY - this.position.y) * Math.min(1, 8 * delta);
+      this.velocity.y = 0;
+      this.isGrounded = false;
+
+      // Swimming horizontal displacement
+      const swimSpeed = this.keys.sprint ? 7.2 : 4.6;
+      const forward = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
+      const strafe = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
+      const isMoving = forward !== 0 || strafe !== 0;
+
+      if (isMoving) {
+        const len = Math.hypot(forward, strafe);
+        const fwdNorm = forward / len;
+        const strNorm = strafe / len;
+        const u = Math.sin(this.cameraYaw);
+        const d = Math.cos(this.cameraYaw);
+        const dirX = (u * fwdNorm - d * strNorm);
+        const dirZ = (d * fwdNorm + u * strNorm);
+
+        this.position.x += dirX * swimSpeed * delta;
+        this.position.z += dirZ * swimSpeed * delta;
+
+        // Face swim direction
+        const targetRotation = Math.atan2(dirX, dirZ);
+        let diff = targetRotation - this.mesh.rotation.y;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        this.mesh.rotation.y += diff * 12 * delta;
+
+        // Swimming breaststroke & flutter kick animations
+        this.walkCycle += delta * (this.keys.sprint ? 9 : 6);
+        this.leftArm.rotation.x = Math.sin(this.walkCycle) * 1.2;
+        this.rightArm.rotation.x = Math.sin(this.walkCycle + Math.PI) * 1.2;
+        this.leftLeg.rotation.x = Math.sin(this.walkCycle * 2) * 0.45;
+        this.rightLeg.rotation.x = -Math.sin(this.walkCycle * 2) * 0.45;
+        this.mesh.rotation.x = -0.32; // Body leans forward into the water!
+
+        this.swimStrokeTimer += delta;
+        if (this.swimStrokeTimer > 1.2) {
+          soundSynth.playWaterSplash();
+          this.swimStrokeTimer = 0;
+        }
+      } else {
+        // Treading water gently
+        this.mesh.rotation.x = 0;
+        this.leftArm.rotation.x = 0.2;
+        this.rightArm.rotation.x = 0.2;
+        this.leftArm.rotation.z = 0.45 + Math.sin(elapsed * 2) * 0.15;
+        this.rightArm.rotation.z = -0.45 - Math.sin(elapsed * 2) * 0.15;
+        this.leftLeg.rotation.x = Math.sin(elapsed * 2.5) * 0.2;
+        this.rightLeg.rotation.x = -Math.sin(elapsed * 2.5) * 0.2;
+      }
+
+      if (this.shadowMesh) {
+        this.shadowMesh.visible = false;
+      }
+
+      this.mesh.position.set(this.position.x, this.position.y, this.position.z);
+      this.updateCamera();
+      return;
+    } else {
+      if (this.isSwimming) {
+        this.isSwimming = false;
+        this.mesh.rotation.x = 0;
+        if (this.leftArm) {
+          this.leftArm.rotation.x = 0;
+          this.leftArm.rotation.z = 0.2;
+        }
+        if (this.rightArm) {
+          this.rightArm.rotation.x = -Math.PI / 3.8;
+          this.rightArm.rotation.z = 0;
+        }
+        if (this.leftLeg) this.leftLeg.rotation.x = 0;
+        if (this.rightLeg) this.rightLeg.rotation.x = 0;
+        if (this.shadowMesh) {
+          this.shadowMesh.visible = true;
+        }
+      }
+    }
+
+    // 2. Horizontal movement relative to camera orientation
     // forward: +1 for W/Up, -1 for S/Down
     // strafe: +1 for D/Right, -1 for A/Left
     const forward = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
