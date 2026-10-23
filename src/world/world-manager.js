@@ -162,88 +162,118 @@ export class WorldManager {
     this.scene.add(this.weatherPoints);
   }
 
-  // ACCURATE GROUND HEIGHT SYSTEM (Eliminates flying in the sky!)
-  getGroundHeight(x, z) {
-    // 1. Lucknow Station Sector (station center: x: -200, z: -100)
+  // ACCURATE MULTI-TIER GROUND HEIGHT SYSTEM
+  // Respects current player elevation so walking underneath viaducts/bridges doesn't jump to the sky
+  getGroundHeight(x, z, currentY = 1e9) {
+    // 1. Calculate natural valley terrain base height
+    let baseTerrain = 0.2;
+    const distToLake = Math.hypot(x - 60, z + 50);
+    if (distToLake < 65) {
+      baseTerrain = -0.5;
+    } else {
+      let y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
+      const distFromCenter = Math.hypot(x, z);
+      if (distFromCenter > 130 && Math.hypot(x - (-200), z - (-100)) > 110) {
+        y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
+      }
+      baseTerrain = Math.max(0.2, y);
+    }
+
+    // 2. Lucknow Station Sector (station center: x: -200, z: -100)
     const relX = x - (-200);
     const relZ = z - (-100);
     if (Math.hypot(relX, relZ) < 85) {
-      // Main Platform 9 & 9¾ (relX: [-65, 65], relZ: [-8, 8])
-      if (Math.abs(relX) <= 65 && Math.abs(relZ) <= 8.5) {
-        return 1.0;
+      // Overhead footbridge at y = 8.6
+      if (Math.abs(relX - 35) <= 2.8 && Math.abs(relZ) <= 27) {
+        // Only walk on footbridge deck if player is near its height
+        if (currentY >= 5.5 || currentY > 500) {
+          return 8.6;
+        }
       }
+      // Platforms 9 & 9¾ (relX: [-65, 65], relZ: [-8.5, 8.5])
+      if (Math.abs(relX) <= 65 && Math.abs(relZ) <= 8.5) return 1.0;
       // Platform 8: relZ in [-30, -18]
-      if (Math.abs(relX) <= 65 && relZ >= -30 && relZ <= -18) {
-        return 1.0;
-      }
+      if (Math.abs(relX) <= 65 && relZ >= -30 && relZ <= -18) return 1.0;
       // Platform 10: relZ in [18, 30]
-      if (Math.abs(relX) <= 65 && relZ >= 18 && relZ <= 30) {
-        return 1.0;
-      }
+      if (Math.abs(relX) <= 65 && relZ >= 18 && relZ <= 30) return 1.0;
       // Palace Concourse: relZ in [34, 52]
-      if (Math.abs(relX) <= 62 && relZ >= 34 && relZ <= 52) {
-        return 1.0;
-      }
+      if (Math.abs(relX) <= 62 && relZ >= 34 && relZ <= 52) return 1.0;
       // Track ballast beds
       if (Math.abs(relX) <= 70 && (Math.abs(relZ - 12) <= 3.5 || Math.abs(relZ - (-12)) <= 3.5)) {
         return 0.52;
       }
-      // Overhead footbridge
-      if (Math.abs(relX - 35) <= 2.5 && Math.abs(relZ) <= 27) {
-        return 8.6;
-      }
-      // General station yard tarmac
       return 0.4;
     }
 
-    // 2. Himalayan Mountain Viaduct Deck
-    if (x >= -135 && x <= 15 && Math.abs(z - (-12)) <= 4.0) {
-      return 29.8;
+    // 3. Himalayan Mountain Viaduct (deck at y = 29.8, x in [-135, 15], |z - (-12)| <= 4.2)
+    if (x >= -135 && x <= 15 && Math.abs(z - (-12)) <= 4.2) {
+      // Crucial fix: Only ground to viaduct deck if player is already elevated near deck height (or spawning)
+      // When walking in the valley beneath the viaduct (currentY < 18m), return the valley floor!
+      if (currentY >= 18.0 || currentY > 500) {
+        return 29.8;
+      }
+      return baseTerrain;
     }
 
-    // 3. Hogwarts Castle (around x: 40, z: 40)
+    // Viaduct West Approach (mountain railway grade from Lucknow x: [-165, -135])
+    if (x >= -165 && x < -135 && Math.abs(z - (-12)) <= 4.5) {
+      const t = (x - (-165)) / 30; // 0 at -165, 1 at -135
+      const rampDeck = 1.0 + t * (29.8 - 1.0);
+      if (currentY >= rampDeck - 2.5 || currentY > 500) {
+        return rampDeck;
+      }
+    }
+
+    // Viaduct East Approach to Hogwarts Castle Ridge (x: [15, 35])
+    if (x > 15 && x <= 35 && Math.abs(z - (-12)) <= 4.5) {
+      const t = (x - 15) / 20;
+      const rampDeck = 29.8 - t * (29.8 - 12.6);
+      if (currentY >= rampDeck - 2.5 || currentY > 500) {
+        return rampDeck;
+      }
+    }
+
+    // 4. Hogwarts Castle (around x: 40, z: 40)
     const castRelX = x - 40;
     const castRelZ = z - 40;
     const castDist = Math.hypot(castRelX, castRelZ);
 
-    if (castDist < 48) {
+    if (castDist < 52) {
       // Astronomy Tower Top Terrace (world x: 58, z: 18)
       if (Math.hypot(x - 58, z - 18) < 8.5) {
-        return 52.0;
+        if (currentY >= 38.0 || currentY > 500) {
+          return 52.0;
+        }
       }
       // Courtyard & Great Hall main level
       return 12.6;
     }
 
-    // 4. Quidditch Pitch (around x: 130, z: -120)
+    // Castle Entrance Ramp from valley path
+    if (x >= -10 && x <= 25 && z >= 15 && z <= 40) {
+      const t = Math.max(0, Math.min(1, (x - (-10)) / 35));
+      const rampY = 2.0 + t * (12.6 - 2.0);
+      if (currentY >= rampY - 2.0 || currentY > 500) {
+        return rampY;
+      }
+    }
+
+    // 5. Quidditch Pitch (around x: 130, z: -120)
     if (Math.hypot((x - 130) / 1.6, z - (-120)) < 42) {
       return 1.2;
     }
 
-    // 5. Hagrid's Hut & Pumpkin Patch
+    // 6. Hagrid's Hut & Pumpkin Patch
     if (Math.hypot(x - (-70), z - 90) < 20) {
       return 0.8;
     }
 
-    // 6. Forbidden Deodar Forest Stone Circle
+    // 7. Forbidden Deodar Forest Stone Circle
     if (Math.hypot(x - (-110), z - 110) < 25) {
       return 0.8;
     }
 
-    // 7. Lake depression
-    const distToLake = Math.hypot(x - 60, z + 50);
-    if (distToLake < 65) {
-      return -0.5;
-    }
-
-    // 8. Open Terrain Rolling Hills
-    let y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
-    const distFromCenter = Math.hypot(x, z);
-    if (distFromCenter > 130 && Math.hypot(x - (-200), z - (-100)) > 110) {
-      y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
-    }
-
-    return Math.max(0.2, y);
+    return baseTerrain;
   }
 
   cycleTimeOfDay() {

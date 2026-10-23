@@ -16,7 +16,7 @@ class HogwartsGame {
     this.canvas = document.getElementById('c');
     this.clock = new THREE.Clock();
 
-    // 1. Setup Three.js Renderer
+    // 1. Setup Three.js WebGL Renderer
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
@@ -27,11 +27,11 @@ class HogwartsGame {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // 2. Setup Scene & Camera
+    // 2. Setup Scene & Perspective Camera
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.2, 800);
+    this.camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.2, 850);
 
-    // 3. Initialize Core Managers
+    // 3. Initialize Core Game Subsystems
     this.worldManager = new WorldManager(this.scene);
     this.player = new Player(this.scene, this.camera);
     this.wandMagic = new WandMagic(this.scene, this.player);
@@ -40,66 +40,17 @@ class HogwartsGame {
     this.dialogManager = new DialogManager();
     this.hudController = new HUDController(this.worldManager, this.wandMagic, this.player, this.dialogManager);
 
-    this.isPointerLocked = false;
+    window.game = this;
+
     this.isMouseDown = false;
     this.previousMousePosition = { x: 0, y: 0 };
 
-    this.initCardIntro();
     this.initControls();
     this.initWindowResize();
 
     // Start render loop
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
-  }
-
-  initCardIntro() {
-    const card = document.getElementById('card');
-    const enterBtn = document.getElementById('btn-enter');
-    const wanderBtn = document.getElementById('btn-wander');
-    const cardPlacesGrid = document.getElementById('card-places-grid');
-
-    let selectedSpawn = 1;
-
-    // Populate landmarks on opening card
-    if (cardPlacesGrid) {
-      this.worldManager.landmarks.forEach(lm => {
-        const btn = document.createElement('button');
-        btn.className = `card-place-btn ${lm.id === 1 ? 'active' : ''}`;
-        btn.innerHTML = `
-          <span class="card-place-num">${lm.id}</span>
-          <div class="card-place-title">${lm.name}</div>
-        `;
-        btn.addEventListener('click', () => {
-          selectedSpawn = lm.id;
-          document.querySelectorAll('.card-place-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-        });
-        cardPlacesGrid.appendChild(btn);
-      });
-    }
-
-    const startGame = (spawnId) => {
-      try {
-        soundSynth.init();
-      } catch (err) {
-        console.warn('Audio init error:', err);
-      }
-      this.hudController.teleportToLandmark(spawnId);
-      card.classList.add('gone');
-    };
-
-    if (enterBtn) {
-      enterBtn.addEventListener('click', () => startGame(selectedSpawn));
-    }
-
-    if (wanderBtn) {
-      wanderBtn.addEventListener('click', () => {
-        // Random landmark
-        const rnd = 1 + Math.floor(Math.random() * this.worldManager.landmarks.length);
-        startGame(rnd);
-      });
-    }
   }
 
   initControls() {
@@ -130,7 +81,6 @@ class HogwartsGame {
           break;
         case 'Space':
           this.player.jump();
-          this.castActiveWandSpell();
           break;
         case 'KeyE':
           this.interactProximity();
@@ -159,7 +109,7 @@ class HogwartsGame {
           this.dialogManager.showToast('संगीत', `Now Playing: ${track.title}`, 2000);
           break;
 
-        // Spell hotkeys
+        // Spell hotkeys (Q, R, F, C, X, Z)
         case 'KeyQ':
           this.selectAndCastSpell(0);
           break;
@@ -235,8 +185,8 @@ class HogwartsGame {
     // Mouse Look & Cast
     this.canvas.addEventListener('mousedown', (e) => {
       soundSynth.resume();
-      if (e.button === 0) {
-        // Left click casts active spell
+      if (e.button === 0 && !this.hudController.isPaused) {
+        // Left click casts active wand spell
         this.castActiveWandSpell();
       }
       this.isMouseDown = true;
@@ -249,11 +199,16 @@ class HogwartsGame {
 
     window.addEventListener('mousemove', (e) => {
       if (this.isMouseDown || document.pointerLockElement === this.canvas) {
-        const deltaX = e.movementX || (e.clientX - this.previousMousePosition.x);
-        const deltaY = e.movementY || (e.clientY - this.previousMousePosition.y);
+        const deltaX = (e.movementX !== undefined && document.pointerLockElement === this.canvas)
+          ? e.movementX
+          : (e.clientX - this.previousMousePosition.x);
+        const deltaY = (e.movementY !== undefined && document.pointerLockElement === this.canvas)
+          ? e.movementY
+          : (e.clientY - this.previousMousePosition.y);
 
-        this.player.cameraYaw += deltaX * 0.004;
-        this.player.cameraPitch = Math.max(-0.4, Math.min(0.85, this.player.cameraPitch + deltaY * 0.0035));
+        // Courier City style mouse look: dragging right pans view to the right
+        this.player.cameraYaw -= deltaX * 0.0035;
+        this.player.cameraPitch = Math.max(-0.35, Math.min(0.82, this.player.cameraPitch + deltaY * 0.003));
 
         this.previousMousePosition = { x: e.clientX, y: e.clientY };
       }
@@ -291,8 +246,8 @@ class HogwartsGame {
       if (e.touches.length > 0) {
         const deltaX = e.touches[0].clientX - touchStartX;
         const deltaY = e.touches[0].clientY - touchStartY;
-        this.player.cameraYaw += deltaX * 0.006;
-        this.player.cameraPitch = Math.max(-0.4, Math.min(0.85, this.player.cameraPitch + deltaY * 0.005));
+        this.player.cameraYaw -= deltaX * 0.005;
+        this.player.cameraPitch = Math.max(-0.35, Math.min(0.82, this.player.cameraPitch + deltaY * 0.004));
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
       }
@@ -336,13 +291,19 @@ class HogwartsGame {
   animate() {
     requestAnimationFrame(this.animate);
 
+    // If game is paused in pause modal, render scene without simulating physics
+    if (this.hudController.isPaused) {
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const elapsed = this.clock.getElapsedTime();
 
-    // 1. Update Player & Camera (Firmly grounded on terrain/platforms)
+    // 1. Update Player & Camera with Multi-tier Ground Physics
     this.player.update(delta, elapsed, this.worldManager);
 
-    // 2. Update World Zones & Particles
+    // 2. Update World Zones & Weather Particles
     this.worldManager.update(delta, elapsed, this.player.position);
 
     // 3. Update Wand Magic & Projectiles
@@ -362,7 +323,7 @@ class HogwartsGame {
       this.dialogManager.setPrompt(null);
     }
 
-    // 6. Update HUD Coordinates ticker
+    // 6. Update HUD Coordinates & FPS ticker
     this.hudController.updateCoords();
 
     // 7. Render

@@ -1,19 +1,15 @@
-/* Hogwarts Dehradun: Courier City Inspired Aesthetic */
-/* Vintage Parchment, Indo-Saracenic & Gothic Elegance, Cel-Shaded Warmth */
-
-@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Rozha+One&family=Yatra+One&display=swap');
+/* Hogwarts Dehradun: Authentic Courier City Visual Styling & Design System */
 
 :root {
   --ink: #231a26;
   --ink-2: #5d5159;
   --paper: #efe6d6;
   --paper-2: #e6dac6;
-  --paper-dark: #22182b;
   --flame: #e8492a;
   --marigold: #f7b32b;
   --crimson: #740001;
   --gold: #d4af37;
-  --night-blue: #0e1a40;
+  --accent: #c8402a;
 }
 
 * {
@@ -22,11 +18,9 @@
 
 html, body {
   margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
-  background: #120e17;
+  background: #1b1424;
   font-family: 'Mukta', system-ui, -apple-system, sans-serif;
   color: var(--paper);
   user-select: none;
@@ -42,257 +36,461 @@ canvas#c {
 button {
   font: inherit;
   color: inherit;
-  cursor: pointer;
 }
 
-/* === CARD PROLOGUE MODAL (COURIER CITY AESTHETIC) === */
+kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: rgba(35, 26, 38, 0.15);
+  border: 1px solid rgba(35, 26, 38, 0.25);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================================
+   TOP LEFT MENU BUTTON (COURIER CITY AESTHETIC)
+   ========================================================= */
+#menu {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  z-index: 25;
+  font: 700 14px/1 'Mukta', sans-serif;
+  color: var(--paper);
+  background: rgba(35, 26, 38, 0.88);
+  border: 1.5px solid rgba(239, 230, 214, 0.6);
+  border-radius: 6px;
+  padding: 9px 14px 7px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+#menu:hover {
+  background: rgba(45, 34, 50, 0.98);
+  border-color: var(--marigold);
+  transform: translateY(-1px);
+}
+
+#menu[hidden] {
+  display: none;
+}
+
+body:has(#card:not(.gone)) #menu {
+  display: none;
+}
+
+/* =========================================================
+   WELCOME STORY CARD (COURIER CITY AESTHETIC)
+   ========================================================= */
 #card {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 10;
   display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(18, 14, 23, 0.75);
-  backdrop-filter: blur(6px);
-  opacity: 1;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  place-items: end center;
+  pointer-events: none;
+  color: var(--paper);
+  background: radial-gradient(circle at center, rgba(27, 20, 36, 0.4) 0%, rgba(18, 14, 23, 0.85) 100%);
+  transition: opacity 0.8s ease;
 }
 
 #card.gone {
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
+  visibility: hidden;
+}
+
+#card:not(.gone) .card-inner {
+  pointer-events: auto;
 }
 
 .card-inner {
-  width: min(720px, 94vw);
-  max-height: 92vh;
-  overflow-y: auto;
-  background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
-  color: var(--ink);
-  border-radius: 12px;
-  padding: clamp(24px, 4.5vw, 44px);
-  box-shadow: 0 24px 70px rgba(10, 5, 15, 0.7), inset 0 0 0 1px rgba(116, 0, 1, 0.15);
+  text-align: center;
+  padding: 24px 20px clamp(28px, 8vh, 80px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  max-width: 680px;
+  width: 95vw;
+}
+
+.card-script {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  gap: 2px;
 }
 
-.card-header {
-  border-bottom: 2px solid rgba(116, 0, 1, 0.18);
-  padding-bottom: 16px;
-}
-
-.card-deva {
+.script-deva {
   font-family: 'Yatra One', serif;
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-size: clamp(34px, 4.8vw, 62px);
   line-height: 1.15;
-  color: var(--crimson);
-  margin: 0;
+  color: var(--marigold);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
-.card-title {
+.script-latin {
   font-family: 'Rozha One', serif;
-  font-size: clamp(20px, 2vw, 28px);
-  color: var(--ink);
-  margin: 4px 0 0;
+  font-size: clamp(22px, 2.6vw, 36px);
+  line-height: 1.1;
+  color: var(--paper);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   letter-spacing: 0.02em;
 }
 
 .card-story {
-  font-size: clamp(15px, 1.1vw, 17px);
-  line-height: 1.6;
-  color: var(--ink-2);
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.5;
+  color: rgba(239, 230, 214, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  max-width: 580px;
   margin: 0;
 }
 
 .card-story b {
-  color: var(--ink);
+  color: var(--marigold);
+  font-weight: 700;
 }
 
-.card-spawns {
+.card-spawn-selector {
+  margin: 6px 0 10px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
+  width: 100%;
 }
 
 .card-spawn-heading {
+  font-size: 12px;
   font-weight: 700;
-  font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--crimson);
+  letter-spacing: 0.08em;
+  color: rgba(239, 230, 214, 0.8);
 }
 
-.card-places-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
+.card-places {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 600px;
 }
 
 .card-place-btn {
   background: var(--paper-2);
-  border: 1.5px solid transparent;
+  color: var(--ink);
+  border: 1.5px solid rgba(35, 26, 38, 0.2);
   border-radius: 6px;
-  padding: 8px 10px;
-  text-align: left;
+  padding: 6px 12px;
+  font: 700 13px/1.2 'Mukta', system-ui, sans-serif;
+  cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-.card-place-btn:hover {
-  border-color: var(--crimson);
-  background: #fff9ed;
+.card-place-btn:hover, .card-place-btn:focus-visible {
+  background: #ffffff;
+  border-color: var(--accent);
   transform: translateY(-1px);
 }
 
 .card-place-btn.active {
-  border-color: var(--crimson);
-  background: #fff4db;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--marigold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.card-place-num {
-  font-weight: 800;
-  font-size: 12px;
-  color: var(--flame);
-  display: block;
+.card-place-btn .num {
+  font-size: 11px;
+  font-family: monospace;
+  opacity: 0.8;
 }
 
-.card-place-title {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-actions {
+.card-go {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+  margin-top: 4px;
 }
 
-.btn-enter {
-  flex: 1;
-  min-width: 140px;
-  background: var(--crimson);
-  color: #fff;
-  font-weight: 800;
-  font-size: 17px;
+#go {
+  font: 700 18px/1 'Mukta', sans-serif;
+  color: var(--ink);
+  background: var(--paper);
   border: 0;
-  padding: 13px 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(116, 0, 1, 0.35);
-  transition: background 0.2s, transform 0.15s;
+  padding: 14px 32px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(35, 26, 38, 0.6), 0 6px 18px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
 }
 
-.btn-enter:hover {
-  background: #900001;
-  transform: translateY(-2px);
+#go:hover {
+  background: #fff8ec;
+  transform: translateY(-1px);
 }
 
-.btn-wander {
+#wander {
+  font: 700 18px/1 'Mukta', sans-serif;
+  color: var(--paper);
+  background: rgba(35, 26, 38, 0.55);
+  border: 2px solid var(--paper);
+  padding: 12px 26px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.15s ease;
+}
+
+#wander:hover {
+  background: rgba(35, 26, 38, 0.85);
+  border-color: var(--marigold);
+  transform: translateY(-1px);
+}
+
+.card-notes {
+  font-size: 13px;
+  color: rgba(239, 230, 214, 0.75);
+  margin-top: 2px;
+}
+
+.card-notes kbd {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================================================
+   PAUSE MODAL (COURIER CITY AESTHETIC)
+   ========================================================= */
+#pause {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(27, 20, 36, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+#pause[hidden] {
+  display: none;
+}
+
+.pause-inner {
+  width: min(720px, 95vw);
+  max-height: 92vh;
+  overflow: auto;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--ink);
+  border-radius: 10px;
+  padding: clamp(22px, 4vw, 38px);
+  box-shadow: 0 18px 60px rgba(20, 12, 30, 0.65);
+}
+
+.pause-title {
+  margin: 0 0 16px;
+  font: 400 clamp(34px, 4vw, 46px)/1 'Rozha One', serif;
+  color: var(--crimson);
+}
+
+#resume {
+  font: 700 17px/1 'Mukta', sans-serif;
+  color: var(--paper);
+  background: var(--ink);
+  border: 0;
+  padding: 13px 28px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s ease;
+}
+
+#resume:hover {
+  background: #3a2c40;
+}
+
+.pause-label {
+  margin: 24px 0 10px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pause-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.pause-place-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 8px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  color: var(--ink);
+  text-decoration: none;
   background: var(--paper-2);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.pause-place-btn:hover, .pause-place-btn:focus-visible {
+  border-color: var(--accent);
+  background: #fff8ec;
+  transform: translateY(-1px);
+}
+
+.pause-place-btn .pp-num {
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.pause-place-btn .pp-native {
+  font: 700 16px/1.3 'Yatra One', serif;
+  color: var(--crimson);
+}
+
+.pause-place-btn .pp-latin {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pause-controls-guide {
+  background: rgba(35, 26, 38, 0.06);
+  border: 1px solid rgba(35, 26, 38, 0.12);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  color: var(--ink-2);
+}
+
+.pause-controls-guide p {
+  margin: 3px 0;
+}
+
+.pause-controls-guide b {
+  color: var(--ink);
+}
+
+.pause-home {
+  display: inline-block;
   color: var(--ink);
   font-weight: 700;
-  font-size: 16px;
-  border: 1.5px solid rgba(35, 26, 38, 0.2);
-  padding: 13px 22px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  font-size: 14px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-.btn-wander:hover {
-  background: #fff;
-  border-color: var(--ink);
+.pause-home:hover {
+  color: var(--crimson);
 }
 
-/* === HUD CONTAINER === */
+/* =========================================================
+   HUD CONTAINER & SUB-COMPONENTS
+   ========================================================= */
 #hud {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 20;
+  color: var(--paper);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 #hud > * {
   pointer-events: auto;
 }
 
-/* Reticle Center Dot */
+/* Reticle Center Dot (Courier City Style) */
 #hud::after {
   content: "";
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 5px;
-  height: 5px;
-  margin: -2.5px;
+  width: 4px;
+  height: 4px;
+  margin: -2px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  background: rgba(255, 245, 230, 0.7);
   pointer-events: none;
 }
 
-/* === TOAST POPUP (COURIER CITY BILINGUAL) === */
+body:has(#card:not(.gone)) #hud,
+body:has(#pause:not([hidden])) #hud {
+  display: none;
+}
+
+/* 1. Bilingual Toast Popup (Courier City exact layout) */
 #toast {
   position: absolute;
-  left: 50%;
-  top: 20px;
-  transform: translateX(-50%);
-  text-align: center;
-  background: rgba(27, 20, 36, 0.94);
-  border: 1.5px solid rgba(212, 175, 55, 0.5);
-  padding: 8px 26px;
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  left: 28px;
+  top: 24px;
   opacity: 0;
-  transform: translate(-50%, -10px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.8s ease;
   pointer-events: none;
-  z-index: 30;
-  white-space: nowrap;
 }
 
 #toast.show {
   opacity: 1;
-  transform: translate(-50%, 0);
+}
+
+body:has(#menu:not([hidden])) #toast {
+  top: 62px;
 }
 
 .t-deva {
   font-family: 'Yatra One', serif;
-  font-size: 22px;
-  color: var(--marigold);
+  font-size: clamp(26px, 2.5vw, 32px);
   line-height: 1.2;
+  color: var(--marigold);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
 .t-latin {
   font-family: 'Rozha One', serif;
-  font-size: 14px;
-  color: #f7efe0;
+  font-size: clamp(15px, 1.3vw, 18px);
   letter-spacing: 0.04em;
-  margin-top: 2px;
+  opacity: 0.92;
+  color: #fff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.9);
 }
 
-/* === DIALOGUE OVERLAY (#talk) === */
+/* 2. NPC Dialogue Subtitles (Courier City exact layout) */
 #talk {
   position: absolute;
   left: 50%;
-  bottom: 24%;
-  transform: translate(-50%, 10px);
-  max-width: min(600px, 90vw);
-  background: rgba(27, 20, 36, 0.94);
-  border: 1.5px solid var(--marigold);
-  border-radius: 10px;
-  padding: 16px 24px;
+  bottom: 27%;
+  transform: translate(-50%, 8px);
+  max-width: min(580px, 88vw);
   text-align: center;
   opacity: 0;
   transition: opacity 0.35s ease, transform 0.35s ease;
   pointer-events: none;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
 #talk.show {
@@ -301,43 +499,45 @@ button {
 }
 
 .k-who {
-  font-family: 'Rozha One', serif;
-  font-size: 15px;
-  color: var(--flame);
+  font: 400 15px/1.2 'Rozha One', serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  color: var(--marigold);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
 }
 
 .k-native {
-  font-family: 'Yatra One', serif;
-  font-size: 24px;
-  line-height: 1.35;
-  color: var(--marigold);
-  margin: 4px 0;
+  font: 400 clamp(24px, 2.4vw, 30px)/1.3 'Yatra One', serif;
+  margin-top: 3px;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
 }
 
 .k-english {
-  font-size: 15px;
-  line-height: 1.45;
-  color: #f3ece1;
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.4;
+  opacity: 0.92;
+  margin-top: 3px;
+  color: var(--paper);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.95);
 }
 
-/* === INTERACTION PROMPT === */
+/* 3. Interaction Prompt */
 #prompt {
   position: absolute;
   left: 50%;
-  bottom: 18%;
-  transform: translateX(-50%);
-  background: rgba(35, 26, 38, 0.9);
-  border: 1px solid rgba(247, 179, 43, 0.5);
-  color: #fff;
+  bottom: 20%;
+  transform: translate(-50%);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
+  background: rgba(43, 30, 48, 0.85);
+  border: 1px solid rgba(239, 230, 214, 0.3);
   padding: 6px 16px;
   border-radius: 6px;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s;
   pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 #prompt.show {
@@ -348,266 +548,315 @@ button {
   color: var(--marigold);
 }
 
-/* === TOP LEFT: PLACES TELEPORT BUTTON & MENU === */
+/* 4. Top Left Places Dropdown */
 #places-hud {
-  position: absolute;
-  left: 16px;
+  position: fixed;
   top: 16px;
+  left: 130px;
+  z-index: 26;
+  pointer-events: auto;
 }
 
 #places-btn {
   background: rgba(35, 26, 38, 0.88);
-  border: 1.5px solid rgba(239, 230, 214, 0.6);
-  color: var(--paper);
-  font-weight: 700;
-  font-size: 15px;
-  padding: 8px 16px;
-  border-radius: 6px;
+  color: #f7efe0;
+  border: 1.5px solid rgba(247, 239, 224, 0.4);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font: 700 13px/1.2 'Mukta', system-ui, sans-serif;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
 }
 
 #places-btn:hover {
-  background: rgba(116, 0, 1, 0.85);
+  background: rgba(45, 34, 50, 0.98);
   border-color: var(--marigold);
+  transform: translateY(-1px);
 }
 
-.places-badge {
+#places-btn .places-badge {
   background: rgba(247, 179, 43, 0.25);
   color: var(--marigold);
-  font-size: 12px;
-  padding: 2px 6px;
+  padding: 1px 6px;
   border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
 }
 
 .places-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  width: 290px;
-  background: var(--paper);
-  color: var(--ink);
+  width: 280px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: rgba(27, 20, 36, 0.95);
+  color: #efe6d6;
+  border: 1.5px solid rgba(239, 230, 214, 0.35);
   border-radius: 8px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-  border: 1.5px solid var(--crimson);
+  padding: 8px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 28;
 }
 
 .places-menu[hidden] {
-  display: none;
+  display: none !important;
 }
 
 .places-menu-header {
-  font-family: 'Rozha One', serif;
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 10px 14px 8px;
-  background: var(--paper-2);
-  border-bottom: 1px solid rgba(35, 26, 38, 0.15);
-  color: var(--crimson);
+  letter-spacing: 0.08em;
+  color: rgba(239, 230, 214, 0.6);
+  padding: 4px 6px 6px;
+  border-bottom: 1px solid rgba(239, 230, 214, 0.15);
 }
 
 .places-list {
-  max-height: 340px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .place-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 14px;
-  border: 0;
-  border-bottom: 1px solid rgba(35, 26, 38, 0.08);
-  background: none;
+  justify-content: space-between;
+  background: rgba(239, 230, 214, 0.08);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #efe6d6;
+  font: 600 13px/1.2 'Mukta', system-ui, sans-serif;
+  cursor: pointer;
   text-align: left;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
+  width: 100%;
 }
 
-.place-item:hover {
-  background: #fff4dc;
+.place-item:hover, .place-item:focus-visible {
+  background: rgba(247, 179, 43, 0.2);
+  border-color: var(--marigold);
+  color: #ffffff;
+  transform: translateX(2px);
 }
 
-.place-badge {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  background: var(--crimson);
-  color: #fff;
-  border-radius: 4px;
-  font-weight: 800;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.place-info {
+.place-item .place-names {
   display: flex;
   flex-direction: column;
+  gap: 1px;
   min-width: 0;
 }
 
-.place-deva {
+.place-item .place-native {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--marigold);
   font-family: 'Yatra One', serif;
-  font-size: 15px;
-  line-height: 1.2;
-  color: var(--crimson);
 }
 
-.place-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
+.place-item .place-latin {
+  font-size: 12px;
+  opacity: 0.9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* === TOP RIGHT: MUSIC HUD & MODE === */
-#mode {
-  position: absolute;
-  left: 160px;
-  top: 16px;
-  font-size: 13px;
-  letter-spacing: 0.03em;
-  background: rgba(35, 26, 38, 0.88);
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid rgba(239, 230, 214, 0.35);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+.place-item .place-key {
+  font-size: 11px;
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #fff;
+  flex-shrink: 0;
 }
 
+/* 5. Top Right Floating Music Card (Courier City exact layout) */
 #music-hud {
-  position: absolute;
-  right: 18px;
+  position: fixed;
   top: 16px;
+  right: 16px;
+  z-index: 26;
+  pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: rgba(35, 26, 38, 0.88);
-  border: 1px solid rgba(239, 230, 214, 0.35);
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  color: #f7efe0;
+  border: 1.5px solid rgba(247, 239, 224, 0.4);
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  max-width: 320px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+#music-hud:hover {
+  border-color: #2ed573;
 }
 
 .music-info {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 190px;
+  min-width: 0;
+  flex: 1;
+}
+
+.music-icon {
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 #music-title {
-  white-space: nowrap;
+  font: 700 11.5px/1.2 'Mukta', system-ui, sans-serif;
+  color: #f7efe0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 600;
+  white-space: nowrap;
+  max-width: 150px;
 }
 
 .music-ctrls {
   display: flex;
+  align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .music-btn {
-  background: none;
-  border: 0;
-  font-size: 14px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: background 0.15s;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f7efe0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
 .music-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(46, 213, 115, 0.25);
+  border-color: #2ed573;
+  color: #2ed573;
+  transform: translateY(-1px);
 }
 
-/* === BOTTOM SPELl HUD (WAND ENCHANTMENTS BAR) === */
+/* 6. Active Mode Badge */
+#mode {
+  position: absolute;
+  right: 235px;
+  top: 16px;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  background: rgba(35, 26, 38, 0.88);
+  border: 1.5px solid rgba(239, 230, 214, 0.35);
+  padding: 7px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+/* 7. Wand Spells Quick Bar */
 #spells-hud {
   position: absolute;
   left: 50%;
-  bottom: 58px;
+  bottom: 50px;
   transform: translateX(-50%);
   display: flex;
   gap: 6px;
-  background: rgba(27, 20, 36, 0.92);
-  border: 1.5px solid rgba(212, 175, 55, 0.45);
-  padding: 6px;
-  border-radius: 10px;
+  background: rgba(27, 20, 36, 0.9);
+  border: 1.5px solid rgba(247, 179, 43, 0.4);
+  padding: 5px 8px;
+  border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   max-width: 95vw;
   overflow-x: auto;
 }
 
 .spell-slot {
-  background: rgba(45, 33, 58, 0.8);
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(239, 230, 214, 0.08);
+  border: 1px solid rgba(239, 230, 214, 0.2);
   color: var(--paper);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 5px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  min-width: 70px;
-  transition: all 0.2s ease;
+  gap: 1px;
+  min-width: 65px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .spell-slot:hover {
-  background: rgba(116, 0, 1, 0.7);
+  background: rgba(247, 179, 43, 0.25);
   border-color: var(--marigold);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .spell-slot.active {
-  background: var(--crimson);
+  background: rgba(116, 0, 1, 0.85);
   border-color: var(--marigold);
-  box-shadow: 0 0 12px rgba(247, 179, 43, 0.6);
+  box-shadow: 0 0 10px rgba(247, 179, 43, 0.5);
 }
 
 .spell-key {
-  font-size: 11px;
+  font-size: 10px;
+  font-family: monospace;
   font-weight: 800;
   color: var(--marigold);
 }
 
 .spell-name {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-/* === BOTTOM HINT BAR & COORDS === */
-#coords {
-  position: absolute;
-  left: 18px;
-  bottom: 12px;
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-  color: rgba(239, 230, 214, 0.85);
-  letter-spacing: 0.02em;
-}
-
+/* 8. Bottom Hint & Coordinates */
 #hint {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 34px;
+  bottom: 14px;
   text-align: center;
-  font-size: 11.5px;
-  color: rgba(239, 230, 214, 0.75);
+  font-size: 12.5px;
+  opacity: 0.82;
+  padding: 0 16px;
   pointer-events: none;
 }
 
-/* === MOBILE TOUCH CONTROLS === */
+#coords {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11.5px;
+  opacity: 0.85;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* 9. Mobile Touch Controls */
 #touch-controls {
   position: fixed;
   inset: 0;
@@ -621,6 +870,14 @@ button {
     display: block;
   }
   #hint {
+    bottom: auto;
+    top: 60px;
+    font-size: 11px;
+  }
+  #hud::after {
+    display: none;
+  }
+  #mode {
     display: none;
   }
 }
@@ -628,14 +885,14 @@ button {
 .touch-btn {
   pointer-events: auto;
   position: absolute;
-  width: 70px;
-  height: 70px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   border: 2px solid rgba(247, 179, 43, 0.6);
   background: rgba(116, 0, 1, 0.85);
   color: #fff;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
   display: grid;
   place-items: center;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
@@ -643,12 +900,30 @@ button {
 }
 
 #btn-touch-cast {
-  right: 28px;
-  bottom: 120px;
+  right: 24px;
+  bottom: 115px;
 }
 
 #btn-touch-jump {
-  right: 110px;
-  bottom: 120px;
+  right: 102px;
+  bottom: 115px;
   background: rgba(35, 26, 38, 0.85);
+}
+
+@media (max-width: 650px) {
+  #places-hud {
+    left: 80px;
+    top: 12px;
+  }
+  #music-hud {
+    top: 12px;
+    right: 12px;
+    max-width: 200px;
+  }
+  #music-title {
+    max-width: 80px;
+  }
+  #mode {
+    display: none;
+  }
 }

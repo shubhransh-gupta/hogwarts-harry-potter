@@ -200,30 +200,51 @@ export class Player {
 
   jump() {
     if (this.isGrounded) {
-      this.velocity.y = 9.5;
+      this.velocity.y = 10.0;
       this.isGrounded = false;
     }
   }
 
   update(delta, elapsed, worldManager) {
-    // 1. Horizontal movement relative to camera
+    // 1. Horizontal movement relative to camera orientation
+    // forward: +1 for W/Up, -1 for S/Down
+    // strafe: +1 for D/Right, -1 for A/Left
     const forward = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
-    const side = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
+    const strafe = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
 
-    this.isMoving = forward !== 0 || side !== 0;
+    this.isMoving = forward !== 0 || strafe !== 0;
     const currentSpeed = (this.keys.sprint ? this.moveSpeed * this.sprintMultiplier : this.moveSpeed);
 
     if (this.isMoving) {
-      const moveAngle = this.cameraYaw + Math.atan2(side, forward);
-      this.velocity.x = Math.sin(moveAngle) * currentSpeed;
-      this.velocity.z = Math.cos(moveAngle) * currentSpeed;
+      // Normalize input so diagonals aren't faster
+      const len = Math.hypot(forward, strafe);
+      const fwdNorm = forward / len;
+      const strNorm = strafe / len;
 
-      // Smooth rotation
-      const targetRotation = moveAngle;
+      // Courier City camera-relative movement physics:
+      // When looking forward (yaw = 0):
+      // W (fwd = +1, str = 0) -> dirX = 0, dirZ = +1 (forward)
+      // S (fwd = -1, str = 0) -> dirX = 0, dirZ = -1 (backward)
+      // D (fwd = 0, str = +1) -> dirX = -1, dirZ = 0 (screen right in Three.js)
+      // A (fwd = 0, str = -1) -> dirX = +1, dirZ = 0 (screen left in Three.js)
+      const u = Math.sin(this.cameraYaw);
+      const d = Math.cos(this.cameraYaw);
+      const dirX = (u * fwdNorm - d * strNorm);
+      const dirZ = (d * fwdNorm + u * strNorm);
+
+      // Target horizontal velocity
+      const targetVx = dirX * currentSpeed;
+      const targetVz = dirZ * currentSpeed;
+
+      this.velocity.x += (targetVx - this.velocity.x) * Math.min(1, 14 * delta);
+      this.velocity.z += (targetVz - this.velocity.z) * Math.min(1, 14 * delta);
+
+      // Smooth mesh rotation to face movement direction
+      const targetRotation = Math.atan2(dirX, dirZ);
       let diff = targetRotation - this.mesh.rotation.y;
       while (diff < -Math.PI) diff += Math.PI * 2;
       while (diff > Math.PI) diff -= Math.PI * 2;
-      this.mesh.rotation.y += diff * 14 * delta;
+      this.mesh.rotation.y += diff * 15 * delta;
 
       // Animate walking limbs
       this.walkCycle += delta * (this.keys.sprint ? 14 : 9);
@@ -235,8 +256,8 @@ export class Player {
         this.scarfTail.rotation.x = -0.3 + Math.sin(this.walkCycle * 2) * 0.25;
       }
     } else {
-      this.velocity.x *= 0.12;
-      this.velocity.z *= 0.12;
+      this.velocity.x *= 0.75;
+      this.velocity.z *= 0.75;
       this.leftLeg.rotation.x = 0;
       this.rightLeg.rotation.x = 0;
       this.leftArm.rotation.x = 0;
@@ -246,26 +267,36 @@ export class Player {
     this.position.x += this.velocity.x * delta;
     this.position.z += this.velocity.z * delta;
 
-    // 2. Ground Height Clamping & Gravity (Eliminates flying in the sky!)
-    const groundY = worldManager ? worldManager.getGroundHeight(this.position.x, this.position.z) : 1.0;
+    // 2. Multi-tier Ground Physics with Gravity (Pass current player Y to prevent flyover fluctuations)
+    const groundY = worldManager ? worldManager.getGroundHeight(this.position.x, this.position.z, this.position.y) : 1.0;
 
-    if (!this.isGrounded) {
-      this.velocity.y -= 26 * delta; // Gravity
-      this.position.y += this.velocity.y * delta;
+    // Apply gravity
+    this.velocity.y -= 26 * delta;
+    this.position.y += this.velocity.y * delta;
 
-      if (this.position.y <= groundY) {
-        this.position.y = groundY;
-        this.velocity.y = 0;
-        this.isGrounded = true;
-      }
-    } else {
-      // Firmly planted on ground/platform surface
+    // Ground landing & step-up handling
+    if (this.position.y <= groundY) {
       this.position.y = groundY;
       this.velocity.y = 0;
+      this.isGrounded = true;
+    } else if (this.isGrounded && groundY - this.position.y <= 0.55 && groundY >= this.position.y) {
+      // Smoothly step up over small curbs or platforms
+      this.position.y = groundY;
+      this.velocity.y = 0;
+    } else {
+      this.isGrounded = (this.position.y - groundY < 0.12 && Math.abs(this.velocity.y) < 1.0);
     }
 
     // Update mesh position
     this.mesh.position.set(this.position.x, this.position.y, this.position.z);
+
+    // Update drop-shadow scale & opacity based on jump height
+    if (this.shadowMesh) {
+      const heightAboveGround = Math.max(0, this.position.y - groundY);
+      const scale = Math.max(0.3, 1.0 - heightAboveGround * 0.15);
+      this.shadowMesh.scale.set(scale, scale, scale);
+      this.shadowMesh.material.opacity = Math.max(0.05, 0.42 - heightAboveGround * 0.08);
+    }
 
     // 3. Update Camera
     this.updateCamera();
