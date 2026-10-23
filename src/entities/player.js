@@ -263,28 +263,71 @@ export class Player {
       this.leftArm.rotation.x = 0;
     }
 
-    // Apply horizontal displacement
-    this.position.x += this.velocity.x * delta;
-    this.position.z += this.velocity.z * delta;
+    // 2. Physics Displacement, Slope Climbing & Wall Collision
+    const nextX = this.position.x + this.velocity.x * delta;
+    const nextZ = this.position.z + this.velocity.z * delta;
+    let currentGroundY = this.position.y;
 
-    // 2. Multi-tier Ground Physics with Gravity (Pass current player Y to prevent flyover fluctuations)
-    const groundY = worldManager ? worldManager.getGroundHeight(this.position.x, this.position.z, this.position.y) : 1.0;
+    if (worldManager) {
+      const targetGroundY = worldManager.getGroundHeight(nextX, nextZ, this.position.y);
+      const elevationRise = targetGroundY - this.position.y;
 
-    // Apply gravity
-    this.velocity.y -= 26 * delta;
-    this.position.y += this.velocity.y * delta;
+      // When grounded, player can ascend walkable slopes and steps (up to 2.2m per frame)
+      const maxClimbStep = this.isGrounded ? 2.2 : 0.6;
 
-    // Ground landing & step-up handling
-    if (this.position.y <= groundY) {
-      this.position.y = groundY;
-      this.velocity.y = 0;
-      this.isGrounded = true;
-    } else if (this.isGrounded && groundY - this.position.y <= 0.55 && groundY >= this.position.y) {
-      // Smoothly step up over small curbs or platforms
-      this.position.y = groundY;
-      this.velocity.y = 0;
+      if (elevationRise > maxClimbStep) {
+        // Collision: Obstacle is a steep wall or cliff face. Prevent penetrating inside!
+        // Allow sliding along open axis:
+        const xGroundY = worldManager.getGroundHeight(nextX, this.position.z, this.position.y);
+        const zGroundY = worldManager.getGroundHeight(this.position.x, nextZ, this.position.y);
+
+        if (xGroundY - this.position.y <= maxClimbStep) {
+          this.position.x = nextX;
+          this.velocity.z = 0;
+        } else if (zGroundY - this.position.y <= maxClimbStep) {
+          this.position.z = nextZ;
+          this.velocity.x = 0;
+        } else {
+          // Block horizontal penetration into wall
+          this.velocity.x = 0;
+          this.velocity.z = 0;
+        }
+      } else {
+        // Walkable ground/slope: advance horizontally
+        this.position.x = nextX;
+        this.position.z = nextZ;
+
+        // When grounded and walking UP a slope:
+        // Follow real physics and ASCEND the slope!
+        if (this.isGrounded && elevationRise > 0) {
+          this.position.y = targetGroundY;
+          this.velocity.y = 0;
+        }
+      }
+
+      // Vertical physics (gravity and surface adherence)
+      const currentGroundY = worldManager.getGroundHeight(this.position.x, this.position.z, this.position.y);
+
+      if (this.isGrounded && Math.abs(this.position.y - currentGroundY) < 0.65) {
+        // Firmly planted on ground/slope
+        this.position.y = currentGroundY;
+        this.velocity.y = 0;
+      } else {
+        // Airborne (jumping or descending): apply gravity
+        this.velocity.y -= 26 * delta;
+        this.position.y += this.velocity.y * delta;
+
+        if (this.position.y <= currentGroundY) {
+          this.position.y = currentGroundY;
+          this.velocity.y = 0;
+          this.isGrounded = true;
+        } else {
+          this.isGrounded = false;
+        }
+      }
     } else {
-      this.isGrounded = (this.position.y - groundY < 0.12 && Math.abs(this.velocity.y) < 1.0);
+      this.position.x = nextX;
+      this.position.z = nextZ;
     }
 
     // Update mesh position
@@ -292,7 +335,7 @@ export class Player {
 
     // Update drop-shadow scale & opacity based on jump height
     if (this.shadowMesh) {
-      const heightAboveGround = Math.max(0, this.position.y - groundY);
+      const heightAboveGround = Math.max(0, this.position.y - (currentGroundY ?? this.position.y));
       const scale = Math.max(0.3, 1.0 - heightAboveGround * 0.15);
       this.shadowMesh.scale.set(scale, scale, scale);
       this.shadowMesh.material.opacity = Math.max(0.05, 0.42 - heightAboveGround * 0.08);

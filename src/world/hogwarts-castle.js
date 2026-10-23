@@ -27,6 +27,21 @@ export function createHogwartsCastle() {
   terrace.receiveShadow = true;
   castleGroup.add(terrace);
 
+  // Grand Stone Approach Ramp leading from valley up to castle courtyard (south-west face)
+  const rampShape = new THREE.Shape();
+  rampShape.moveTo(-8, 0);
+  rampShape.lineTo(8, 0);
+  rampShape.lineTo(8, 28);
+  rampShape.lineTo(-8, 28);
+  rampShape.closePath();
+
+  const rampGeo = new THREE.BoxGeometry(16, 12, 26);
+  rampGeo.rotateX(-Math.PI / 8.2);
+  const castleRamp = new THREE.Mesh(rampGeo, darkStoneMat);
+  castleRamp.position.set(-35, 5.2, 55);
+  castleRamp.rotation.y = -Math.PI / 5;
+  castleGroup.add(castleRamp);
+
   // === 2. THE GREAT HALL ===
   const greatHall = new THREE.Group();
   greatHall.position.set(-15, 12, -10);

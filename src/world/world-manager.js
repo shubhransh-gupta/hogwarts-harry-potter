@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { createLucknowStation } from './lucknow-station.js';
 import { createHogwartsCastle } from './hogwarts-castle.js';
-import { createDehradunMountains } from './dehradun-mountains.js';
+import { createDehradunMountains, HIMALAYAN_MOUNTAINS } from './dehradun-mountains.js';
 import { createQuidditchPitch } from './quidditch-pitch.js';
 import { createHagridHut } from './hagrid-hut.js';
 import { createForbiddenForest } from './forbidden-forest.js';
@@ -179,13 +179,26 @@ export class WorldManager {
       baseTerrain = Math.max(0.2, y);
     }
 
+    // Include Himalayan mountain peaks in terrain height
+    if (HIMALAYAN_MOUNTAINS) {
+      for (let i = 0; i < HIMALAYAN_MOUNTAINS.length; i++) {
+        const m = HIMALAYAN_MOUNTAINS[i];
+        const mDist = Math.hypot(x - m.x, z - m.z);
+        if (mDist < m.radius) {
+          const coneY = (1 - mDist / m.radius) * m.height;
+          if (coneY > baseTerrain) {
+            baseTerrain = coneY;
+          }
+        }
+      }
+    }
+
     // 2. Lucknow Station Sector (station center: x: -200, z: -100)
     const relX = x - (-200);
     const relZ = z - (-100);
     if (Math.hypot(relX, relZ) < 85) {
       // Overhead footbridge at y = 8.6
       if (Math.abs(relX - 35) <= 2.8 && Math.abs(relZ) <= 27) {
-        // Only walk on footbridge deck if player is near its height
         if (currentY >= 5.5 || currentY > 500) {
           return 8.6;
         }
@@ -207,8 +220,6 @@ export class WorldManager {
 
     // 3. Himalayan Mountain Viaduct (deck at y = 29.8, x in [-135, 15], |z - (-12)| <= 4.2)
     if (x >= -135 && x <= 15 && Math.abs(z - (-12)) <= 4.2) {
-      // Crucial fix: Only ground to viaduct deck if player is already elevated near deck height (or spawning)
-      // When walking in the valley beneath the viaduct (currentY < 18m), return the valley floor!
       if (currentY >= 18.0 || currentY > 500) {
         return 29.8;
       }
@@ -218,35 +229,40 @@ export class WorldManager {
     // Viaduct West Approach (mountain railway grade from Lucknow x: [-165, -135])
     if (x >= -165 && x < -135 && Math.abs(z - (-12)) <= 4.5) {
       const t = (x - (-165)) / 30; // 0 at -165, 1 at -135
-      const rampDeck = 1.0 + t * (29.8 - 1.0);
-      if (currentY >= rampDeck - 2.5 || currentY > 500) {
-        return rampDeck;
-      }
+      const rampDeck = 1.0 + t * (28.9 - 1.0);
+      return rampDeck;
     }
 
-    // Viaduct East Approach to Hogwarts Castle Ridge (x: [15, 35])
-    if (x > 15 && x <= 35 && Math.abs(z - (-12)) <= 4.5) {
-      const t = (x - 15) / 20;
-      const rampDeck = 29.8 - t * (29.8 - 12.6);
-      if (currentY >= rampDeck - 2.5 || currentY > 500) {
-        return rampDeck;
-      }
+    // Viaduct East Approach to Hogwarts Castle Ridge (x: [15, 38])
+    if (x > 15 && x <= 38 && Math.abs(z - (-12)) <= 4.5) {
+      const t = (x - 15) / 23;
+      const rampDeck = 28.9 - t * (28.9 - 12.6);
+      return rampDeck;
     }
 
-    // 4. Hogwarts Castle (around x: 40, z: 40)
+    // 4. Hogwarts Castle Complex (around x: 40, z: 40)
     const castRelX = x - 40;
     const castRelZ = z - 40;
     const castDist = Math.hypot(castRelX, castRelZ);
 
-    if (castDist < 52) {
+    // Castle Terrace (radius 76 at base, 65 at top, height 12.0)
+    if (castDist <= 76) {
       // Astronomy Tower Top Terrace (world x: 58, z: 18)
       if (Math.hypot(x - 58, z - 18) < 8.5) {
         if (currentY >= 38.0 || currentY > 500) {
           return 52.0;
         }
       }
-      // Courtyard & Great Hall main level
-      return 12.6;
+
+      if (castDist <= 65) {
+        // Courtyard & Great Hall main level
+        return 12.6;
+      } else {
+        // Tapered rock slope of the terrace: climbs smoothly from baseTerrain up to 12.0m!
+        const slopeT = (76 - castDist) / 11;
+        const terraceSlopeY = baseTerrain + slopeT * (12.0 - baseTerrain);
+        return Math.max(baseTerrain, terraceSlopeY);
+      }
     }
 
     // Castle Entrance Ramp from valley path

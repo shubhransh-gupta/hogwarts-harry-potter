@@ -4,6 +4,27 @@
 import * as THREE from 'three';
 import { createHogwartsExpress } from './hogwarts-express.js';
 
+// Deterministic mountain peak coordinates for visual rendering and physics elevation
+export const HIMALAYAN_MOUNTAINS = [];
+const mountainCount = 28;
+const mountainRadius = 240;
+
+for (let i = 0; i < mountainCount; i++) {
+  const angle = (i / mountainCount) * Math.PI * 2;
+  const dist = mountainRadius + (Math.sin(i * 3) * 35);
+  const mx = Math.cos(angle) * dist;
+  const mz = Math.sin(angle) * dist;
+
+  // Do NOT put mountain peaks directly on Lucknow station!
+  if (Math.hypot(mx - (-200), mz - (-100)) < 135) {
+    continue;
+  }
+
+  const height = 110 + Math.sin(i * 5.2) * 35;
+  const radius = 65 + Math.cos(i * 4.1) * 20;
+  HIMALAYAN_MOUNTAINS.push({ x: mx, z: mz, radius, height, seed: i });
+}
+
 export function createDehradunMountains() {
   const landscapeGroup = new THREE.Group();
   landscapeGroup.name = 'DehradunHimalayanLandscape';
@@ -102,37 +123,21 @@ export function createDehradunMountains() {
 
   // === 3. RING OF DRAMATIC HIMALAYAN MOUNTAINS ===
   // Peaks surrounding the Dehradun Valley & Viaduct (omits Lucknow station)
-  const mountainCount = 28;
-  const mountainRadius = 240;
-
-  for (let i = 0; i < mountainCount; i++) {
-    const angle = (i / mountainCount) * Math.PI * 2;
-    const dist = mountainRadius + (Math.sin(i * 3) * 35);
-    const mx = Math.cos(angle) * dist;
-    const mz = Math.sin(angle) * dist;
-
-    // Do NOT put mountain peaks directly on Lucknow station!
-    if (Math.hypot(mx - (-200), mz - (-100)) < 135) {
-      continue;
-    }
-
-    const height = 95 + Math.random() * 80;
-    const radius = 55 + Math.random() * 35;
-
+  HIMALAYAN_MOUNTAINS.forEach((m, i) => {
     // Mountain Cone (Rocky Base)
-    const mtnGeo = new THREE.ConeGeometry(radius, height, 9);
+    const mtnGeo = new THREE.ConeGeometry(m.radius, m.height, 9);
     const mtn = new THREE.Mesh(mtnGeo, rockMat);
-    mtn.position.set(mx, height / 2 - 4, mz);
-    mtn.rotation.y = Math.random() * Math.PI;
+    mtn.position.set(m.x, m.height / 2 - 4, m.z);
+    mtn.rotation.y = (i * 1.7) % Math.PI;
     landscapeGroup.add(mtn);
 
     // Snow-dusted Himalayan Summit cap
-    const snowCapGeo = new THREE.ConeGeometry(radius * 0.38, height * 0.32, 9);
+    const snowCapGeo = new THREE.ConeGeometry(m.radius * 0.38, m.height * 0.32, 9);
     const snowCap = new THREE.Mesh(snowCapGeo, snowMat);
-    snowCap.position.set(mx, height - (height * 0.16) - 4, mz);
+    snowCap.position.set(m.x, m.height - (m.height * 0.16) - 4, m.z);
     snowCap.rotation.y = mtn.rotation.y;
     landscapeGroup.add(snowCap);
-  }
+  });
 
   // === 4. THE GRAND MOUNTAIN VIADUCT ===
   // Sweeping curved stone aqueduct bridge crossing across the gorge
@@ -173,6 +178,20 @@ export function createDehradunMountains() {
   const deck = new THREE.Mesh(deckGeo, viaductStoneMat);
   deck.position.set(0, viaductHeight + 0.9, 8);
   viaductGroup.add(deck);
+
+  // West Stone Railway Embankment Ramp (connecting station grade to viaduct)
+  const westRampGeo = new THREE.BoxGeometry(32, 28, 6.5);
+  westRampGeo.rotateZ(Math.PI / 8.5);
+  const westRamp = new THREE.Mesh(westRampGeo, viaductStoneMat);
+  westRamp.position.set(-deckLength / 2 - 14, viaductHeight / 2, 8);
+  viaductGroup.add(westRamp);
+
+  // East Stone Railway Embankment (connecting viaduct to castle ridge)
+  const eastRampGeo = new THREE.BoxGeometry(26, 18, 6.5);
+  eastRampGeo.rotateZ(-Math.PI / 10);
+  const eastRamp = new THREE.Mesh(eastRampGeo, viaductStoneMat);
+  eastRamp.position.set(deckLength / 2 + 11, viaductHeight * 0.7, 8);
+  viaductGroup.add(eastRamp);
 
   // Parapet safety walls
   [-3.0, 3.0].forEach(z => {
