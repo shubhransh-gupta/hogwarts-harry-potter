@@ -1,0 +1,649 @@
+/* Hogwarts Dehradun: Courier City Inspired Aesthetic */
+/* Vintage Parchment, Indo-Saracenic & Gothic Elegance, Cel-Shaded Warmth */
+
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Rozha+One&family=Yatra+One&display=swap');
+
+:root {
+  --ink: #231a26;
+  --ink-2: #5d5159;
+  --paper: #efe6d6;
+  --paper-2: #e6dac6;
+  --paper-dark: #22182b;
+  --flame: #e8492a;
+  --marigold: #f7b32b;
+  --crimson: #740001;
+  --gold: #d4af37;
+  --night-blue: #0e1a40;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #120e17;
+  font-family: 'Mukta', system-ui, -apple-system, sans-serif;
+  color: var(--paper);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+canvas#c {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* === CARD PROLOGUE MODAL (COURIER CITY AESTHETIC) === */
+#card {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(18, 14, 23, 0.75);
+  backdrop-filter: blur(6px);
+  opacity: 1;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#card.gone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card-inner {
+  width: min(720px, 94vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--ink);
+  border-radius: 12px;
+  padding: clamp(24px, 4.5vw, 44px);
+  box-shadow: 0 24px 70px rgba(10, 5, 15, 0.7), inset 0 0 0 1px rgba(116, 0, 1, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card-header {
+  border-bottom: 2px solid rgba(116, 0, 1, 0.18);
+  padding-bottom: 16px;
+}
+
+.card-deva {
+  font-family: 'Yatra One', serif;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.15;
+  color: var(--crimson);
+  margin: 0;
+}
+
+.card-title {
+  font-family: 'Rozha One', serif;
+  font-size: clamp(20px, 2vw, 28px);
+  color: var(--ink);
+  margin: 4px 0 0;
+  letter-spacing: 0.02em;
+}
+
+.card-story {
+  font-size: clamp(15px, 1.1vw, 17px);
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.card-story b {
+  color: var(--ink);
+}
+
+.card-spawns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-spawn-heading {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--crimson);
+}
+
+.card-places-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.card-place-btn {
+  background: var(--paper-2);
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.card-place-btn:hover {
+  border-color: var(--crimson);
+  background: #fff9ed;
+  transform: translateY(-1px);
+}
+
+.card-place-btn.active {
+  border-color: var(--crimson);
+  background: #fff4db;
+}
+
+.card-place-num {
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--flame);
+  display: block;
+}
+
+.card-place-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-enter {
+  flex: 1;
+  min-width: 140px;
+  background: var(--crimson);
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  border: 0;
+  padding: 13px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(116, 0, 1, 0.35);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-enter:hover {
+  background: #900001;
+  transform: translateY(-2px);
+}
+
+.btn-wander {
+  background: var(--paper-2);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 16px;
+  border: 1.5px solid rgba(35, 26, 38, 0.2);
+  padding: 13px 22px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-wander:hover {
+  background: #fff;
+  border-color: var(--ink);
+}
+
+/* === HUD CONTAINER === */
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+#hud > * {
+  pointer-events: auto;
+}
+
+/* Reticle Center Dot */
+#hud::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* === TOAST POPUP (COURIER CITY BILINGUAL) === */
+#toast {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  text-align: center;
+  background: rgba(27, 20, 36, 0.88);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 8px 24px;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translate(-50%, -10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.t-deva {
+  font-family: 'Yatra One', serif;
+  font-size: 24px;
+  color: var(--marigold);
+  line-height: 1.2;
+}
+
+.t-latin {
+  font-family: 'Rozha One', serif;
+  font-size: 15px;
+  color: #f7efe0;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* === DIALOGUE OVERLAY (#talk) === */
+#talk {
+  position: absolute;
+  left: 50%;
+  bottom: 24%;
+  transform: translate(-50%, 10px);
+  max-width: min(600px, 90vw);
+  background: rgba(27, 20, 36, 0.94);
+  border: 1.5px solid var(--marigold);
+  border-radius: 10px;
+  padding: 16px 24px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+#talk.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.k-who {
+  font-family: 'Rozha One', serif;
+  font-size: 15px;
+  color: var(--flame);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.k-native {
+  font-family: 'Yatra One', serif;
+  font-size: 24px;
+  line-height: 1.35;
+  color: var(--marigold);
+  margin: 4px 0;
+}
+
+.k-english {
+  font-size: 15px;
+  line-height: 1.45;
+  color: #f3ece1;
+}
+
+/* === INTERACTION PROMPT === */
+#prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  background: rgba(35, 26, 38, 0.9);
+  border: 1px solid rgba(247, 179, 43, 0.5);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+#prompt.show {
+  opacity: 1;
+}
+
+#prompt b {
+  color: var(--marigold);
+}
+
+/* === TOP LEFT: PLACES TELEPORT BUTTON & MENU === */
+#places-hud {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+}
+
+#places-btn {
+  background: rgba(35, 26, 38, 0.88);
+  border: 1.5px solid rgba(239, 230, 214, 0.6);
+  color: var(--paper);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+}
+
+#places-btn:hover {
+  background: rgba(116, 0, 1, 0.85);
+  border-color: var(--marigold);
+}
+
+.places-badge {
+  background: rgba(247, 179, 43, 0.25);
+  color: var(--marigold);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.places-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 290px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 8px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  border: 1.5px solid var(--crimson);
+}
+
+.places-menu[hidden] {
+  display: none;
+}
+
+.places-menu-header {
+  font-family: 'Rozha One', serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 14px 8px;
+  background: var(--paper-2);
+  border-bottom: 1px solid rgba(35, 26, 38, 0.15);
+  color: var(--crimson);
+}
+
+.places-list {
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(35, 26, 38, 0.08);
+  background: none;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.place-item:hover {
+  background: #fff4dc;
+}
+
+.place-badge {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: var(--crimson);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.place-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.place-deva {
+  font-family: 'Yatra One', serif;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--crimson);
+}
+
+.place-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === TOP RIGHT: MUSIC HUD & MODE === */
+#mode {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  background: rgba(35, 26, 38, 0.85);
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 230, 214, 0.3);
+}
+
+#music-hud {
+  position: absolute;
+  right: 18px;
+  top: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(35, 26, 38, 0.85);
+  border: 1px solid rgba(239, 230, 214, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.music-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 170px;
+}
+
+#music-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.music-ctrls {
+  display: flex;
+  gap: 4px;
+}
+
+.music-btn {
+  background: none;
+  border: 0;
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.music-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* === BOTTOM SPELl HUD (WAND ENCHANTMENTS BAR) === */
+#spells-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 46px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  background: rgba(27, 20, 36, 0.92);
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  padding: 6px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  max-width: 95vw;
+  overflow-x: auto;
+}
+
+.spell-slot {
+  background: rgba(45, 33, 58, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: var(--paper);
+  border-radius: 6px;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 70px;
+  transition: all 0.2s ease;
+}
+
+.spell-slot:hover {
+  background: rgba(116, 0, 1, 0.7);
+  border-color: var(--marigold);
+  transform: translateY(-2px);
+}
+
+.spell-slot.active {
+  background: var(--crimson);
+  border-color: var(--marigold);
+  box-shadow: 0 0 12px rgba(247, 179, 43, 0.6);
+}
+
+.spell-key {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--marigold);
+}
+
+.spell-name {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* === BOTTOM HINT BAR & COORDS === */
+#coords {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: rgba(239, 230, 214, 0.8);
+}
+
+#hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(239, 230, 214, 0.75);
+  pointer-events: none;
+}
+
+/* === MOBILE TOUCH CONTROLS === */
+#touch-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  display: none;
+}
+
+@media (pointer: coarse) {
+  #touch-controls {
+    display: block;
+  }
+  #hint {
+    display: none;
+  }
+}
+
+.touch-btn {
+  pointer-events: auto;
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid rgba(247, 179, 43, 0.6);
+  background: rgba(116, 0, 1, 0.85);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+}
+
+#btn-touch-cast {
+  right: 28px;
+  bottom: 120px;
+}
+
+#btn-touch-jump {
+  right: 110px;
+  bottom: 120px;
+  background: rgba(35, 26, 38, 0.85);
+}

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Hogwarts Dehradun: The Lucknow 9¾ Express</title>
+  <meta name="description" content="A 3D browser-based open-world Harry Potter exploration game. Board the 5972 Express at Lucknow Charbagh Platform 9¾ and explore Hogwarts nestled in the Himalayan mountains of Dehradun with your wand." />
+  <meta name="theme-color" content="#231a26" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <!-- Three.js Canvas -->
+  <canvas id="c"></canvas>
+
+  <!-- Opening Story Card (Courier City Aesthetic) -->
+  <div id="card">
+    <div class="card-inner">
+      <div class="card-header">
+        <h1 class="card-deva">हॉगवॉर्ट्स एक्सप्रेस · लखनऊ ९¾</h1>
+        <h2 class="card-title">Hogwarts Dehradun: The Lucknow 9¾ Express</h2>
+      </div>
+
+      <p class="card-story">
+        Tucked secretly between Platforms 9 and 10 of the majestic red-brick arches of <b>Lucknow Charbagh Railway Station</b> lies the enchanted brick barrier to <b>Platform 9¾</b>. Beyond the solid masonry, steam billows from the scarlet locomotive: the iconic <b>5972 Hogwarts Express</b>, bound across the Shivalik foothills for <b>Hogwarts School of Witchcraft and Wizardry</b>—hidden high within the mist-crowned pine mountains of <b>Dehradun</b>.
+      </p>
+
+      <p class="card-story">
+        Hold your wand in hand, cast ancient spells (<b>Lumos, Expecto Patronum, Wingardium Leviosa, Incendio</b>), explore the Great Hall's floating candles, the soaring Astronomy Tower, the Quidditch pitch, Hagrid's hut, and the Forbidden Himalayan Forest.
+      </p>
+
+      <div class="card-spawns">
+        <div class="card-spawn-heading">📍 Choose Your Starting Landmark:</div>
+        <div id="card-places-grid" class="card-places-grid"></div>
+      </div>
+
+      <div class="card-actions">
+        <button id="btn-enter" class="btn-enter">Board the Express</button>
+        <button id="btn-wander" class="btn-wander">Random Wander</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD Interface -->
+  <div id="hud">
+    <!-- Reticle Center Dot handled via CSS -->
+
+    <!-- Bilingual Toast Popup -->
+    <div id="toast">
+      <div class="t-deva"></div>
+      <div class="t-latin"></div>
+    </div>
+
+    <!-- NPC Dialogue Box -->
+    <div id="talk">
+      <div class="k-who"></div>
+      <div class="k-native"></div>
+      <div class="k-english"></div>
+    </div>
+
+    <!-- Interaction Prompt -->
+    <div id="prompt"></div>
+
+    <!-- Top Left: Landmarks Spawning Menu -->
+    <div id="places-hud">
+      <button id="places-btn" aria-label="Landmark Places" title="Spawn to landmark places (Keys 1-8)">
+        <span class="places-icon">📍</span>
+        <span class="places-text">Places</span>
+        <span class="places-badge">[1-8]</span>
+      </button>
+      <div id="places-menu" class="places-menu" hidden>
+        <div class="places-menu-header">Spawn to Landmark:</div>
+        <div id="places-list" class="places-list"></div>
+      </div>
+    </div>
+
+    <!-- Top Right: Active Mode & Synthesized Music Player -->
+    <div id="mode">Wand Spell: Lumos [Q]</div>
+
+    <div id="music-hud">
+      <div class="music-info">
+        <span class="music-icon">🎵</span>
+        <span id="music-title">Hedwig’s Himalayan Theme</span>
+      </div>
+      <div class="music-ctrls">
+        <button id="music-play-btn" class="music-btn" aria-label="Pause / Play (Key M)" title="Pause / Play (Key M)"><span id="music-play-icon">⏸</span></button>
+        <button id="music-next-btn" class="music-btn" aria-label="Next Song (Key N)" title="Next Song (Key N)">⏭</button>
+      </div>
+    </div>
+
+    <!-- Bottom Center: Wand Magic Spell Hotbar -->
+    <div id="spells-hud"></div>
+
+    <!-- Bottom Left: Real-time Coordinates & Elevation -->
+    <div id="coords">📍 Platform 9¾ · Lucknow Charbagh · 30.3165° N, 78.0322° E</div>
+
+    <!-- Bottom Center: Keybindings Hint -->
+    <div id="hint">WASD walk · Shift run · Left Click cast · 1-8 places · Space / Q/E/R/F spells · E talk · V camera · T time of day · K weather · M music</div>
+  </div>
+
+  <!-- Mobile Touch Controls -->
+  <div id="touch-controls">
+    <button id="btn-touch-cast" class="touch-btn">CAST 🪄</button>
+    <button id="btn-touch-jump" class="touch-btn">TALK 💬</button>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
