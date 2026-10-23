@@ -17,7 +17,7 @@ export class NPCManager {
         id: 'station_master',
         name: 'Lucknow Station Master',
         nativeName: 'लखनऊ स्टेशन मास्टर',
-        pos: { x: -176, y: 1.2, z: -69 },
+        pos: { x: -195, y: 1.0, z: -94 }, // On Platform 9¾
         color: 0x1f2937,
         accent: 0xd4af37,
         dialog: {
@@ -30,7 +30,7 @@ export class NPCManager {
         id: 'train_conductor',
         name: 'Hogwarts Express Conductor',
         nativeName: 'हॉगवॉर्ट्स एक्सप्रेस कंडक्टर',
-        pos: { x: -172, y: 1.2, z: -83 },
+        pos: { x: -206, y: 1.0, z: -104 }, // Next to the 5972 Engine
         color: 0x740001,
         accent: 0xf7b32b,
         dialog: {
@@ -43,7 +43,7 @@ export class NPCManager {
         id: 'mcgonagall',
         name: 'Professor McGonagall',
         nativeName: 'प्रोफ़ेसर मैकगोनागल',
-        pos: { x: 26, y: 13.2, z: 28 }, // Great Hall entrance
+        pos: { x: 26, y: 12.6, z: 28 }, // Great Hall entrance
         color: 0x1a472a,
         accent: 0x000000,
         dialog: {
@@ -56,7 +56,7 @@ export class NPCManager {
         id: 'sorting_hat',
         name: 'The Sorting Hat',
         nativeName: 'द सॉर्टिंग हैट',
-        pos: { x: 25, y: 13.8, z: 42 }, // Inside Great Hall
+        pos: { x: 25, y: 12.6, z: 42 }, // Inside Great Hall
         color: 0x4a2e18,
         accent: 0x2e1a0d,
         isHat: true,
@@ -70,7 +70,7 @@ export class NPCManager {
         id: 'hagrid',
         name: 'Rubeus Hagrid',
         nativeName: 'रूबियस हैग्रिड',
-        pos: { x: -68, y: 1.2, z: 86 }, // By Hagrid's Hut
+        pos: { x: -68, y: 0.8, z: 86 }, // By Hagrid's Hut
         color: 0x3d2716,
         accent: 0x6e583c,
         isGiant: true,
@@ -100,11 +100,18 @@ export class NPCManager {
       npcGroup.position.set(data.pos.x, data.pos.y, data.pos.z);
       npcGroup.userData = data;
 
-      // Stylized character mesh
       const scale = data.isGiant ? 1.6 : 1.0;
 
+      // Contact shadow under NPC
+      const sGeo = new THREE.CircleGeometry(0.55 * scale, 12);
+      sGeo.rotateX(-Math.PI / 2);
+      const sMat = new THREE.MeshBasicMaterial({ color: 0x08060a, transparent: true, opacity: 0.38 });
+      const shadow = new THREE.Mesh(sGeo, sMat);
+      shadow.position.y = 0.02;
+      npcGroup.add(shadow);
+
       if (data.isHat) {
-        // Sorting hat cone on stool
+        // Sorting hat on wooden stool
         const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.8, 8), new THREE.MeshToonMaterial({ color: 0x553311 }));
         stool.position.y = 0.4;
         npcGroup.add(stool);
@@ -119,15 +126,17 @@ export class NPCManager {
         const bodyGeo = new THREE.CylinderGeometry(0.35 * scale, 0.45 * scale, 1.4 * scale, 10);
         const body = new THREE.Mesh(bodyGeo, new THREE.MeshToonMaterial({ color: data.color }));
         body.position.y = 0.9 * scale;
+        body.castShadow = true;
         npcGroup.add(body);
 
         // Head
         const headGeo = new THREE.SphereGeometry(0.28 * scale, 12, 10);
         const head = new THREE.Mesh(headGeo, new THREE.MeshToonMaterial({ color: 0xdca882 }));
         head.position.y = 1.8 * scale;
+        head.castShadow = true;
         npcGroup.add(head);
 
-        // Hat or Hair
+        // Hat or Turban
         const hatGeo = new THREE.ConeGeometry(0.32 * scale, 0.6 * scale, 8);
         const hat = new THREE.Mesh(hatGeo, new THREE.MeshToonMaterial({ color: data.accent }));
         hat.position.y = 2.15 * scale;

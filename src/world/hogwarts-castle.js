@@ -86,9 +86,44 @@ export function createHogwartsCastle() {
   }
 
   // Warm Great Hall Interior Light Source
-  const greatHallLight = new THREE.PointLight(0xffb84d, 2.5, 35);
+  const greatHallLight = new THREE.PointLight(0xffb84d, 2.8, 38);
   greatHallLight.position.set(0, 10, 0);
   greatHall.add(greatHallLight);
+
+  // 4 Long House Banquet Tables (Gryffindor, Ravenclaw, Hufflepuff, Slytherin)
+  [-6, -2, 2, 6].forEach(tx => {
+    const tableGeo = new THREE.BoxGeometry(2.2, 0.75, 26);
+    const table = new THREE.Mesh(tableGeo, woodMat);
+    table.position.set(tx, 0.75, 0);
+    table.castShadow = true;
+    table.receiveShadow = true;
+    greatHall.add(table);
+
+    // Golden plates and goblets on table
+    for (let pz = -11; pz <= 11; pz += 3.5) {
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.05, 10), goldBrassMat);
+      plate.position.set(tx, 1.15, pz);
+      greatHall.add(plate);
+
+      const goblet = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.28, 8), goldBrassMat);
+      goblet.position.set(tx + 0.4, 1.25, pz);
+      greatHall.add(goblet);
+    }
+  });
+
+  // Grand Stone Fireplace Hearth at the end of the Great Hall
+  const hearthGeo = new THREE.BoxGeometry(7, 6, 2.5);
+  const hearth = new THREE.Mesh(hearthGeo, darkStoneMat);
+  hearth.position.set(0, 3, -19);
+  greatHall.add(hearth);
+
+  const fireCavity = new THREE.Mesh(new THREE.BoxGeometry(4, 3.5, 2), new THREE.MeshBasicMaterial({ color: 0x110808 }));
+  fireCavity.position.set(0, 2, -18.8);
+  greatHall.add(fireCavity);
+
+  const flameGlow = new THREE.PointLight(0xff6600, 3.2, 18);
+  flameGlow.position.set(0, 2.5, -18);
+  greatHall.add(flameGlow);
 
   // FLOATING CANDLES (Enchanted floating candles inside Great Hall)
   const candleCount = 28;
@@ -261,6 +296,21 @@ export function createHogwartsCastle() {
   const fountainSpire = new THREE.Mesh(fountainSpireGeo, darkStoneMat);
   fountainSpire.position.set(0, 2.5, 0);
   courtyard.add(fountainSpire);
+
+  // Glowing Stone Braziers at Courtyard Corners
+  [[-13, -10], [13, -10], [-13, 10], [13, 10]].forEach(([bx, bz]) => {
+    const brazier = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.5, 1.4, 8), darkStoneMat);
+    brazier.position.set(bx, 1.0, bz);
+    courtyard.add(brazier);
+
+    const bFire = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.75, 8), new THREE.MeshBasicMaterial({ color: 0xff7700 }));
+    bFire.position.set(bx, 1.9, bz);
+    courtyard.add(bFire);
+
+    const bLight = new THREE.PointLight(0xff8822, 1.4, 14);
+    bLight.position.set(bx, 2.1, bz);
+    courtyard.add(bLight);
+  });
 
   // CLOCK TOWER (At end of Courtyard)
   const clockTower = new THREE.Group();

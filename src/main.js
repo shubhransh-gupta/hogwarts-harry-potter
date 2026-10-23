@@ -129,6 +129,7 @@ class HogwartsGame {
           this.player.keys.sprint = true;
           break;
         case 'Space':
+          this.player.jump();
           this.castActiveWandSpell();
           break;
         case 'KeyE':
@@ -338,8 +339,8 @@ class HogwartsGame {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const elapsed = this.clock.getElapsedTime();
 
-    // 1. Update Player & Camera
-    this.player.update(delta, elapsed);
+    // 1. Update Player & Camera (Firmly grounded on terrain/platforms)
+    this.player.update(delta, elapsed, this.worldManager);
 
     // 2. Update World Zones & Particles
     this.worldManager.update(delta, elapsed, this.player.position);

@@ -1,5 +1,5 @@
 // Wizard Student Player Character Model & Movement Controller
-// Stylized 3D wizard boy with Hogwarts robe, scarf, animated wand, and physics controls
+// Stylized 3D wizard boy with Hogwarts robe, scarf, animated wand, grounded physics & drop shadow
 
 import * as THREE from 'three';
 
@@ -8,12 +8,12 @@ export class Player {
     this.scene = scene;
     this.camera = camera;
 
-    // Movement state
-    this.position = new THREE.Vector3(-180, 1.2, -74); // Spawn initially at Platform 9¾
+    // Movement state (Spawned firmly on Platform 9¾)
+    this.position = new THREE.Vector3(-200, 1.0, -96);
     this.velocity = new THREE.Vector3();
     this.isGrounded = true;
-    this.moveSpeed = 11;
-    this.sprintMultiplier = 1.9;
+    this.moveSpeed = 11.5;
+    this.sprintMultiplier = 1.85;
     this.isSprinting = false;
     this.isFirstPerson = false;
 
@@ -28,10 +28,10 @@ export class Player {
     };
 
     // Camera angles
-    this.cameraDistance = 7.5;
-    this.cameraHeight = 3.2;
+    this.cameraDistance = 7.0;
+    this.cameraHeight = 2.8;
     this.cameraYaw = 0;
-    this.cameraPitch = 0.22;
+    this.cameraPitch = 0.18;
 
     this.mesh = this.createPlayerMesh();
     this.scene.add(this.mesh);
@@ -54,10 +54,25 @@ export class Player {
     const shoeMat = new THREE.MeshToonMaterial({ color: 0x111112 });
     const wandWoodMat = new THREE.MeshToonMaterial({ color: 0x4a2e18 });
 
+    // 0. Contact Drop Shadow Decal (Grounded shadow blob)
+    const shadowGeo = new THREE.CircleGeometry(0.62, 16);
+    shadowGeo.rotateX(-Math.PI / 2);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x08060a,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false
+    });
+    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+    shadowMesh.position.y = 0.02;
+    group.add(shadowMesh);
+    this.shadowMesh = shadowMesh;
+
     // 1. Torso & Robes
     const torsoGeo = new THREE.CylinderGeometry(0.38, 0.52, 1.35, 12);
     const torso = new THREE.Mesh(torsoGeo, robeMat);
     torso.position.y = 1.35;
+    torso.castShadow = true;
     group.add(torso);
 
     // Robe lower skirt flair
@@ -70,6 +85,7 @@ export class Player {
     const headGeo = new THREE.SphereGeometry(0.32, 16, 12);
     const head = new THREE.Mesh(headGeo, skinMat);
     head.position.y = 2.25;
+    head.castShadow = true;
     group.add(head);
 
     // Dark ruffled hair
@@ -125,7 +141,7 @@ export class Player {
     hand.position.set(0, -0.65, 0.48);
     rightArmGroup.add(hand);
 
-    // 11-inch Holly Wand with Phoenix Feather core!
+    // 11-inch Holly Wand
     const wandGeo = new THREE.CylinderGeometry(0.02, 0.038, 0.9, 8);
     const wand = new THREE.Mesh(wandGeo, wandWoodMat);
     wand.position.set(0, -0.72, 0.9);
@@ -141,7 +157,7 @@ export class Player {
     group.add(rightArmGroup);
     this.rightArmGroup = rightArmGroup;
 
-    // 5. Legs & Boots
+    // 5. Legs & Boots (Solidly grounded at y = 0)
     const legGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.75, 8);
     const leftLeg = new THREE.Mesh(legGeo, pantsMat);
     leftLeg.position.set(-0.2, 0.45, 0);
@@ -157,6 +173,7 @@ export class Player {
       const bootGeo = new THREE.BoxGeometry(0.22, 0.18, 0.38);
       const boot = new THREE.Mesh(bootGeo, shoeMat);
       boot.position.set(x, 0.09, 0.06);
+      boot.castShadow = true;
       group.add(boot);
     });
 
@@ -174,14 +191,22 @@ export class Player {
   teleport(pos, lookAngle = null) {
     this.position.copy(pos);
     this.velocity.set(0, 0, 0);
+    this.isGrounded = true;
     this.mesh.position.copy(this.position);
     if (lookAngle !== null) {
       this.cameraYaw = lookAngle;
     }
   }
 
-  update(delta, elapsed) {
-    // Determine movement direction relative to camera yaw
+  jump() {
+    if (this.isGrounded) {
+      this.velocity.y = 9.5;
+      this.isGrounded = false;
+    }
+  }
+
+  update(delta, elapsed, worldManager) {
+    // 1. Horizontal movement relative to camera
     const forward = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
     const side = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
 
@@ -193,49 +218,61 @@ export class Player {
       this.velocity.x = Math.sin(moveAngle) * currentSpeed;
       this.velocity.z = Math.cos(moveAngle) * currentSpeed;
 
-      // Smoothly rotate character to face movement direction
+      // Smooth rotation
       const targetRotation = moveAngle;
       let diff = targetRotation - this.mesh.rotation.y;
       while (diff < -Math.PI) diff += Math.PI * 2;
       while (diff > Math.PI) diff -= Math.PI * 2;
-      this.mesh.rotation.y += diff * 12 * delta;
+      this.mesh.rotation.y += diff * 14 * delta;
 
-      // Animate walk/run legs & scarf
+      // Animate walking limbs
       this.walkCycle += delta * (this.keys.sprint ? 14 : 9);
       this.leftLeg.rotation.x = Math.sin(this.walkCycle) * 0.6;
       this.rightLeg.rotation.x = -Math.sin(this.walkCycle) * 0.6;
       this.leftArm.rotation.x = -Math.sin(this.walkCycle) * 0.5;
 
       if (this.scarfTail) {
-        this.scarfTail.rotation.x = -0.3 + Math.sin(this.walkCycle * 2) * 0.2;
+        this.scarfTail.rotation.x = -0.3 + Math.sin(this.walkCycle * 2) * 0.25;
       }
     } else {
-      // Decelerate
-      this.velocity.x *= 0.15;
-      this.velocity.z *= 0.15;
+      this.velocity.x *= 0.12;
+      this.velocity.z *= 0.12;
       this.leftLeg.rotation.x = 0;
       this.rightLeg.rotation.x = 0;
       this.leftArm.rotation.x = 0;
-
-      // Idle breathing
-      this.mesh.position.y = this.position.y + Math.sin(elapsed * 2.5) * 0.02;
     }
 
-    // Apply movement
+    // Apply horizontal displacement
     this.position.x += this.velocity.x * delta;
     this.position.z += this.velocity.z * delta;
 
-    // Ground clamping
-    this.mesh.position.x = this.position.x;
-    this.mesh.position.z = this.position.z;
+    // 2. Ground Height Clamping & Gravity (Eliminates flying in the sky!)
+    const groundY = worldManager ? worldManager.getGroundHeight(this.position.x, this.position.z) : 1.0;
 
-    // Camera following
+    if (!this.isGrounded) {
+      this.velocity.y -= 26 * delta; // Gravity
+      this.position.y += this.velocity.y * delta;
+
+      if (this.position.y <= groundY) {
+        this.position.y = groundY;
+        this.velocity.y = 0;
+        this.isGrounded = true;
+      }
+    } else {
+      // Firmly planted on ground/platform surface
+      this.position.y = groundY;
+      this.velocity.y = 0;
+    }
+
+    // Update mesh position
+    this.mesh.position.set(this.position.x, this.position.y, this.position.z);
+
+    // 3. Update Camera
     this.updateCamera();
   }
 
   updateCamera() {
     if (this.isFirstPerson) {
-      // First person view from wizard's eye level
       this.camera.position.set(this.position.x, this.position.y + 2.1, this.position.z);
       const lookTarget = new THREE.Vector3(
         this.position.x + Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * 20,
@@ -245,14 +282,13 @@ export class Player {
       this.camera.lookAt(lookTarget);
       this.mesh.visible = false;
     } else {
-      // Third-person cinematic orbit camera
       this.mesh.visible = true;
       const camX = this.position.x - Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
       const camY = this.position.y + this.cameraHeight + Math.sin(this.cameraPitch) * this.cameraDistance;
       const camZ = this.position.z - Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
 
       this.camera.position.set(camX, camY, camZ);
-      this.camera.lookAt(this.position.x, this.position.y + 1.6, this.position.z);
+      this.camera.lookAt(this.position.x, this.position.y + 1.45, this.position.z);
     }
   }
 }

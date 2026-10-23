@@ -57,7 +57,7 @@ export class WorldManager {
       }
     ];
 
-    this.currentTimeIndex = 0; // Starts at Golden Hour (iconic Harry Potter cinematic look)
+    this.currentTimeIndex = 0; // Starts at Golden Hour
 
     // Weather states
     this.weatherStates = ['clear', 'snow', 'mist'];
@@ -72,16 +72,16 @@ export class WorldManager {
     // Setup Weather Particles
     this.initWeatherParticles();
 
-    // Landmarks for spawning
+    // Handcrafted Grounded Landmarks for spawning
     this.landmarks = [
-      { id: 1, key: '1', name: 'Platform 9¾ (Lucknow)', devanagari: 'प्लेटफ़ॉर्म ९¾ (लखनऊ)', pos: new THREE.Vector3(-180, 1.2, -74), look: 0 },
-      { id: 2, key: '2', name: 'Himalayan Viaduct & Train', devanagari: 'हिमालयन वायाडक्ट', pos: new THREE.Vector3(-60, 31, -12), look: Math.PI / 2 },
-      { id: 3, key: '3', name: 'Castle Courtyard & Clock', devanagari: 'हॉगवॉर्ट्स प्रांगण', pos: new THREE.Vector3(40, 13, 58), look: 0 },
-      { id: 4, key: '4', name: 'The Great Hall', devanagari: 'द ग्रेट हॉल', pos: new THREE.Vector3(25, 13, 30), look: Math.PI },
-      { id: 5, key: '5', name: 'Astronomy Tower Spire', devanagari: 'एस्ट्रोनॉमी टॉवर', pos: new THREE.Vector3(58, 54, 18), look: -Math.PI / 2 },
-      { id: 6, key: '6', name: 'Quidditch Pitch', devanagari: 'क्विडिच पिच', pos: new THREE.Vector3(130, 1.5, -120), look: 0 },
-      { id: 7, key: '7', name: 'Hagrid’s Hut & Pumpkins', devanagari: 'हैग्रिड की कुटिया', pos: new THREE.Vector3(-70, 1.2, 90), look: Math.PI / 4 },
-      { id: 8, key: '8', name: 'Forbidden Deodar Forest', devanagari: 'निषिद्ध देवदार वन', pos: new THREE.Vector3(-110, 1.2, 110), look: 0 }
+      { id: 1, key: '1', name: 'Platform 9¾ (Lucknow)', devanagari: 'प्लेटफ़ॉर्म ९¾ (लखनऊ)', pos: new THREE.Vector3(-200, 1.0, -96), look: 0 },
+      { id: 2, key: '2', name: 'Himalayan Viaduct & Train', devanagari: 'हिमालयन वायाडक्ट', pos: new THREE.Vector3(-60, 29.8, -12), look: Math.PI / 2 },
+      { id: 3, key: '3', name: 'Castle Courtyard & Clock', devanagari: 'हॉगवॉर्ट्स प्रांगण', pos: new THREE.Vector3(40, 12.6, 58), look: 0 },
+      { id: 4, key: '4', name: 'The Great Hall', devanagari: 'द ग्रेट हॉल', pos: new THREE.Vector3(25, 12.6, 30), look: Math.PI },
+      { id: 5, key: '5', name: 'Astronomy Tower Spire', devanagari: 'एस्ट्रोनॉमी टॉवर', pos: new THREE.Vector3(58, 52.0, 18), look: -Math.PI / 2 },
+      { id: 6, key: '6', name: 'Quidditch Pitch', devanagari: 'क्विडिच पिच', pos: new THREE.Vector3(130, 1.2, -120), look: 0 },
+      { id: 7, key: '7', name: 'Hagrid’s Hut & Pumpkins', devanagari: 'हैग्रिड की कुटिया', pos: new THREE.Vector3(-70, 0.8, 90), look: Math.PI / 4 },
+      { id: 8, key: '8', name: 'Forbidden Deodar Forest', devanagari: 'निषिद्ध देवदार वन', pos: new THREE.Vector3(-110, 0.8, 110), look: 0 }
     ];
   }
 
@@ -89,9 +89,9 @@ export class WorldManager {
     const time = this.timesOfDay[this.currentTimeIndex];
 
     this.scene.background = new THREE.Color(time.skyColor);
-    this.scene.fog = new THREE.FogExp2(time.fogColor, 0.0038);
+    this.scene.fog = new THREE.FogExp2(time.fogColor, 0.0035);
 
-    this.ambientLight = new THREE.AmbientLight(time.ambientColor, 1.2);
+    this.ambientLight = new THREE.AmbientLight(time.ambientColor, 1.25);
     this.scene.add(this.ambientLight);
 
     this.sunLight = new THREE.DirectionalLight(time.sunColor, time.sunIntensity);
@@ -129,7 +129,6 @@ export class WorldManager {
   }
 
   initWeatherParticles() {
-    // 500 falling snowflakes / raindrops
     const count = 500;
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
@@ -163,6 +162,90 @@ export class WorldManager {
     this.scene.add(this.weatherPoints);
   }
 
+  // ACCURATE GROUND HEIGHT SYSTEM (Eliminates flying in the sky!)
+  getGroundHeight(x, z) {
+    // 1. Lucknow Station Sector (station center: x: -200, z: -100)
+    const relX = x - (-200);
+    const relZ = z - (-100);
+    if (Math.hypot(relX, relZ) < 85) {
+      // Main Platform 9 & 9¾ (relX: [-65, 65], relZ: [-8, 8])
+      if (Math.abs(relX) <= 65 && Math.abs(relZ) <= 8.5) {
+        return 1.0;
+      }
+      // Platform 8: relZ in [-30, -18]
+      if (Math.abs(relX) <= 65 && relZ >= -30 && relZ <= -18) {
+        return 1.0;
+      }
+      // Platform 10: relZ in [18, 30]
+      if (Math.abs(relX) <= 65 && relZ >= 18 && relZ <= 30) {
+        return 1.0;
+      }
+      // Palace Concourse: relZ in [34, 52]
+      if (Math.abs(relX) <= 62 && relZ >= 34 && relZ <= 52) {
+        return 1.0;
+      }
+      // Track ballast beds
+      if (Math.abs(relX) <= 70 && (Math.abs(relZ - 12) <= 3.5 || Math.abs(relZ - (-12)) <= 3.5)) {
+        return 0.52;
+      }
+      // Overhead footbridge
+      if (Math.abs(relX - 35) <= 2.5 && Math.abs(relZ) <= 27) {
+        return 8.6;
+      }
+      // General station yard tarmac
+      return 0.4;
+    }
+
+    // 2. Himalayan Mountain Viaduct Deck
+    if (x >= -135 && x <= 15 && Math.abs(z - (-12)) <= 4.0) {
+      return 29.8;
+    }
+
+    // 3. Hogwarts Castle (around x: 40, z: 40)
+    const castRelX = x - 40;
+    const castRelZ = z - 40;
+    const castDist = Math.hypot(castRelX, castRelZ);
+
+    if (castDist < 48) {
+      // Astronomy Tower Top Terrace (world x: 58, z: 18)
+      if (Math.hypot(x - 58, z - 18) < 8.5) {
+        return 52.0;
+      }
+      // Courtyard & Great Hall main level
+      return 12.6;
+    }
+
+    // 4. Quidditch Pitch (around x: 130, z: -120)
+    if (Math.hypot((x - 130) / 1.6, z - (-120)) < 42) {
+      return 1.2;
+    }
+
+    // 5. Hagrid's Hut & Pumpkin Patch
+    if (Math.hypot(x - (-70), z - 90) < 20) {
+      return 0.8;
+    }
+
+    // 6. Forbidden Deodar Forest Stone Circle
+    if (Math.hypot(x - (-110), z - 110) < 25) {
+      return 0.8;
+    }
+
+    // 7. Lake depression
+    const distToLake = Math.hypot(x - 60, z + 50);
+    if (distToLake < 65) {
+      return -0.5;
+    }
+
+    // 8. Open Terrain Rolling Hills
+    let y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
+    const distFromCenter = Math.hypot(x, z);
+    if (distFromCenter > 130 && Math.hypot(x - (-200), z - (-100)) > 110) {
+      y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
+    }
+
+    return Math.max(0.2, y);
+  }
+
   cycleTimeOfDay() {
     this.currentTimeIndex = (this.currentTimeIndex + 1) % this.timesOfDay.length;
     const time = this.timesOfDay[this.currentTimeIndex];
@@ -190,7 +273,7 @@ export class WorldManager {
       this.scene.fog.density = 0.0085;
     } else {
       this.weatherMat.opacity = 0;
-      this.scene.fog.density = 0.0038;
+      this.scene.fog.density = 0.0035;
     }
 
     return weather;

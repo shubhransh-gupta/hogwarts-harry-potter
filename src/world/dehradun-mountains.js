@@ -9,8 +9,8 @@ export function createDehradunMountains() {
   landscapeGroup.name = 'DehradunHimalayanLandscape';
 
   // Materials
-  const grassMat = new THREE.MeshToonMaterial({ color: 0x3e5f39 }); // Himalayan valley green
-  const rockMat = new THREE.MeshToonMaterial({ color: 0x545759 });
+  const grassMat = new THREE.MeshToonMaterial({ color: 0x385c34 }); // Himalayan valley green
+  const rockMat = new THREE.MeshToonMaterial({ color: 0x4d5154 });
   const snowMat = new THREE.MeshToonMaterial({ color: 0xe8eef5 }); // Distant snow peaks
   const viaductStoneMat = new THREE.MeshToonMaterial({ color: 0x6e6966 });
   const pineTrunkMat = new THREE.MeshToonMaterial({ color: 0x3d271d });
@@ -23,7 +23,7 @@ export function createDehradunMountains() {
   });
 
   // === 1. CENTRAL VALLEY TERRAIN (Broad rolling ground) ===
-  const terrainGeo = new THREE.PlaneGeometry(600, 600, 48, 48);
+  const terrainGeo = new THREE.PlaneGeometry(600, 600, 56, 56);
   terrainGeo.rotateX(-Math.PI / 2);
 
   // Deform terrain vertices for natural hills, lake basin, and valleys
@@ -32,19 +32,26 @@ export function createDehradunMountains() {
     const x = pos.getX(i);
     const z = pos.getZ(i);
 
-    // Lake depression around (50, -60)
+    // 1. Keep Lucknow Station sector completely flat & clean (no green grass hills in station!)
+    const distToStation = Math.hypot(x - (-200), z - (-100));
+    if (distToStation < 95) {
+      pos.setY(i, -0.2);
+      continue;
+    }
+
+    // 2. Lake depression around (60, -50)
     const distToLake = Math.hypot(x - 60, z + 50);
     let y = 0;
 
     if (distToLake < 65) {
       y = -4.0 + (distToLake / 65) * 4.0;
     } else {
-      // Gentle rolling hills
-      y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.5;
+      // Gentle rolling Himalayan foothills
+      y = Math.sin(x * 0.015) * Math.cos(z * 0.015) * 3.2;
       // Slopes rising towards outer perimeter
       const distFromCenter = Math.hypot(x, z);
-      if (distFromCenter > 140) {
-        y += Math.pow((distFromCenter - 140) / 70, 2) * 6;
+      if (distFromCenter > 130 && distToStation > 110) {
+        y += Math.pow((distFromCenter - 130) / 65, 2) * 5.5;
       }
     }
 
@@ -94,8 +101,8 @@ export function createDehradunMountains() {
   });
 
   // === 3. RING OF DRAMATIC HIMALAYAN MOUNTAINS ===
-  // Multi-tier mountain peaks surrounding Dehradun valley
-  const mountainCount = 26;
+  // Peaks surrounding the Dehradun Valley & Viaduct (omits Lucknow station)
+  const mountainCount = 28;
   const mountainRadius = 240;
 
   for (let i = 0; i < mountainCount; i++) {
@@ -103,7 +110,13 @@ export function createDehradunMountains() {
     const dist = mountainRadius + (Math.sin(i * 3) * 35);
     const mx = Math.cos(angle) * dist;
     const mz = Math.sin(angle) * dist;
-    const height = 90 + Math.random() * 75;
+
+    // Do NOT put mountain peaks directly on Lucknow station!
+    if (Math.hypot(mx - (-200), mz - (-100)) < 135) {
+      continue;
+    }
+
+    const height = 95 + Math.random() * 80;
     const radius = 55 + Math.random() * 35;
 
     // Mountain Cone (Rocky Base)
@@ -154,7 +167,7 @@ export function createDehradunMountains() {
     viaductGroup.add(spanGroup);
   }
 
-  // Viaduct Top Track Deck
+  // Viaduct Top Track Deck (y = 29.8)
   const deckLength = viaductSpans * spanSpacing + 20;
   const deckGeo = new THREE.BoxGeometry(deckLength, 1.8, 6.5);
   const deck = new THREE.Mesh(deckGeo, viaductStoneMat);
@@ -180,7 +193,7 @@ export function createDehradunMountains() {
   // MOVING HOGWARTS EXPRESS ON THE MOUNTAIN VIADUCT!
   const viaductTrain = createHogwartsExpress(true);
   viaductTrain.position.set(-60, viaductHeight + 1.9, 8);
-  viaductTrain.scale.set(0.75, 0.75, 0.75); // Scaled for majestic viaduct proportions
+  viaductTrain.scale.set(0.75, 0.75, 0.75);
   viaductGroup.add(viaductTrain);
 
   landscapeGroup.add(viaductGroup);
@@ -188,8 +201,7 @@ export function createDehradunMountains() {
   landscapeGroup.userData.viaductDeckLength = deckLength;
 
   // === 5. PROCEDURAL DEODAR & PINE TREES ===
-  // Instanced / grouped Himalayan cedar & pine trees
-  const treeCount = 90;
+  const treeCount = 95;
   const treeGroup = new THREE.Group();
 
   const trunkGeo = new THREE.CylinderGeometry(0.3, 0.45, 3.5, 8);
@@ -198,14 +210,15 @@ export function createDehradunMountains() {
   const coneGeo3 = new THREE.ConeGeometry(1.2, 2.8, 8);
 
   for (let i = 0; i < treeCount; i++) {
-    // Distribute around mountains, forest fringe, and valley
     const angle = Math.random() * Math.PI * 2;
     const dist = 50 + Math.random() * 150;
     const tx = Math.cos(angle) * dist;
     const tz = Math.sin(angle) * dist;
 
-    // Skip castle center and lake
-    if (Math.hypot(tx - 40, tz - 40) < 45 || Math.hypot(tx - 60, tz + 50) < 60) {
+    // Do NOT put trees inside Lucknow Station, Castle courtyard, or Lake
+    if (Math.hypot(tx - (-200), tz - (-100)) < 95 ||
+        Math.hypot(tx - 40, tz - 40) < 45 ||
+        Math.hypot(tx - 60, tz + 50) < 60) {
       continue;
     }
 
@@ -230,7 +243,6 @@ export function createDehradunMountains() {
     layer3.position.y = 8.0;
     tree.add(layer3);
 
-    // Subtle scale variance
     const scale = 0.75 + Math.random() * 0.6;
     tree.scale.set(scale, scale, scale);
 
@@ -244,7 +256,7 @@ export function createDehradunMountains() {
   const cloudMat = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.32,
     depthWrite: false
   });
 
@@ -269,7 +281,6 @@ export function createDehradunMountains() {
 
   // Update animation loop for viaduct train & drifting clouds
   landscapeGroup.userData.update = function (delta) {
-    // 1. Move viaduct Hogwarts Express along the bridge
     if (viaductTrain) {
       viaductTrain.position.x += delta * 14;
       if (viaductTrain.position.x > deckLength / 2 + 10) {
@@ -280,7 +291,6 @@ export function createDehradunMountains() {
       }
     }
 
-    // 2. Drift mountain mist slowly
     for (let i = 0; i < cloudMeshes.length; i++) {
       const c = cloudMeshes[i];
       c.position.x += delta * 1.8;
