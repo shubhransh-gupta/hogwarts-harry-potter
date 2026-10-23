@@ -19,8 +19,7 @@ export function createDehradunMountains() {
   const waterMat = new THREE.MeshToonMaterial({
     color: 0x1e3a45,
     transparent: true,
-    opacity: 0.88,
-    roughness: 0.1
+    opacity: 0.88
   });
 
   // === 1. CENTRAL VALLEY TERRAIN (Broad rolling ground) ===

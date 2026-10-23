@@ -80,7 +80,11 @@ class HogwartsGame {
     }
 
     const startGame = (spawnId) => {
-      soundSynth.init();
+      try {
+        soundSynth.init();
+      } catch (err) {
+        console.warn('Audio init error:', err);
+      }
       this.hudController.teleportToLandmark(spawnId);
       card.classList.add('gone');
     };
@@ -365,7 +369,9 @@ class HogwartsGame {
   }
 }
 
-// Instantiate on DOM load
-window.addEventListener('DOMContentLoaded', () => {
+// Instantiate when DOM is ready
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => new HogwartsGame());
+} else {
   new HogwartsGame();
-});
+}

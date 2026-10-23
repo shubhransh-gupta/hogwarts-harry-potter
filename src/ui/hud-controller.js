@@ -1,5 +1,6 @@
 // HUD Controller: Controls Places menu, Spell hotbar, Music player, and Coordinates
 
+import * as THREE from 'three';
 import { soundSynth } from '../audio/sound-synthesizer.js';
 
 export class HUDController {
@@ -135,15 +136,21 @@ export class HUDController {
 
     let loc = locationName;
     if (!loc) {
-      if (p.distanceTo(new THREE.Vector3(-180, 0, -80)) < 45) {
+      const dLucknow = Math.hypot(p.x - (-180), p.z - (-80));
+      const dCastle = Math.hypot(p.x - 40, p.z - 40);
+      const dQuidditch = Math.hypot(p.x - 130, p.z - (-120));
+      const dHagrid = Math.hypot(p.x - (-70), p.z - 90);
+      const dForest = Math.hypot(p.x - (-110), p.z - 110);
+
+      if (dLucknow < 45) {
         loc = 'Platform 9¾ · Lucknow Charbagh';
-      } else if (p.distanceTo(new THREE.Vector3(40, 0, 40)) < 60) {
+      } else if (dCastle < 60) {
         loc = 'Hogwarts Castle · Dehradun Valley';
-      } else if (p.distanceTo(new THREE.Vector3(130, 0, -120)) < 60) {
+      } else if (dQuidditch < 60) {
         loc = 'Quidditch Pitch';
-      } else if (p.distanceTo(new THREE.Vector3(-70, 0, 90)) < 40) {
+      } else if (dHagrid < 40) {
         loc = 'Hagrid’s Hut & Pumpkin Patch';
-      } else if (p.distanceTo(new THREE.Vector3(-110, 0, 110)) < 45) {
+      } else if (dForest < 45) {
         loc = 'Forbidden Himalayan Forest';
       } else {
         loc = 'Dehradun Shivalik Valley';

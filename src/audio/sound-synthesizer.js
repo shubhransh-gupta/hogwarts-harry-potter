@@ -90,7 +90,7 @@ class SoundSynthesizer {
 
   // Celesta-style note synthesizer
   playCelesta(freq, time, duration = 0.8, volume = 0.25) {
-    if (!this.ctx) return;
+    if (!this.ctx || !Number.isFinite(freq) || !Number.isFinite(time)) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     
@@ -124,7 +124,7 @@ class SoundSynthesizer {
   }
 
   playStrings(freq, time, duration = 2.0, volume = 0.12) {
-    if (!this.ctx) return;
+    if (!this.ctx || !Number.isFinite(freq) || !Number.isFinite(time)) return;
     const osc = this.ctx.createOscillator();
     const osc2 = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
@@ -160,7 +160,7 @@ class SoundSynthesizer {
     const notes = {
       B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
       Fs4: 369.99, G4: 392.00, A4: 440.00, As4: 466.16, B4: 493.88,
-      C5: 523.25, D5: 587.33, Ds5: 622.25, E5: 659.25, F5: 698.46,
+      C5: 523.25, Cs5: 554.37, Db5: 554.37, D5: 587.33, Ds5: 622.25, E5: 659.25, F5: 698.46,
       Fs5: 739.99, G5: 783.99, A5: 880.00, B5: 987.77
     };
 
