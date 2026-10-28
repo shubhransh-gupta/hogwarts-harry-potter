@@ -56,6 +56,11 @@ class HogwartsGame {
   initControls() {
     // Keyboard listeners
     window.addEventListener('keydown', (e) => {
+      const homeEl = document.getElementById('home');
+      if (homeEl && !homeEl.hidden) return;
+      const cardEl = document.getElementById('card');
+      if (cardEl && !cardEl.classList.contains('gone')) return;
+
       soundSynth.resume();
 
       switch (e.code) {
@@ -198,6 +203,11 @@ class HogwartsGame {
     });
 
     window.addEventListener('mousemove', (e) => {
+      const homeEl = document.getElementById('home');
+      if (homeEl && !homeEl.hidden) return;
+      const cardEl = document.getElementById('card');
+      if (cardEl && !cardEl.classList.contains('gone')) return;
+
       if (this.isMouseDown || document.pointerLockElement === this.canvas) {
         const deltaX = (e.movementX !== undefined && document.pointerLockElement === this.canvas)
           ? e.movementX

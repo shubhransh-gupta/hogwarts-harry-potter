@@ -1,7 +1,9 @@
-// HUD Controller: Manages Courier City UI, Places Menu, Pause Modal, Spell Hotbar, Music Player & Coordinates
+// HUD Controller: Manages Courier City UI, Home Screen Integration,
+// Places Menu, Pause Modal, Spell Hotbar, Music Player, Coordinates & Disclaimers
 
 import * as THREE from 'three';
 import { soundSynth } from '../audio/sound-synthesizer.js';
+import { HomeScreen, HOGWARTS_REALMS } from './home-screen.js';
 
 export class HUDController {
   constructor(worldManager, wandMagic, player, dialogManager) {
@@ -15,10 +17,14 @@ export class HUDController {
     this.pauseModal = document.getElementById('pause');
     this.resumeBtn = document.getElementById('resume');
     this.pausePlaces = document.getElementById('pause-places');
+    this.pauseCities = document.querySelector('.pause-cities');
     this.pauseRestart = document.getElementById('pause-restart');
 
     this.cardEl = document.getElementById('card');
+    this.cardScriptDeva = this.cardEl?.querySelector('.script-deva');
+    this.cardScriptLatin = this.cardEl?.querySelector('.script-latin');
     this.cardPlacesEl = document.getElementById('card-places');
+    this.cardBackBtn = document.getElementById('card-back');
     this.goBtn = document.getElementById('go');
     this.wanderBtn = document.getElementById('wander');
 
@@ -34,23 +40,58 @@ export class HUDController {
     this.modeEl = document.getElementById('mode');
     this.coordsEl = document.getElementById('coords');
     this.spellBar = document.getElementById('spells-hud');
+    this.gameDisclaimer = document.getElementById('game-disclaimer');
+    this.gdCloseBtn = document.getElementById('gd-close');
 
     // State
     this.isPaused = false;
     this.selectedSpawnId = 1;
+    this.currentRealm = HOGWARTS_REALMS[0];
     this.lastFrameTime = performance.now();
     this.frameCount = 0;
     this.currentFps = 60;
 
+    // Initialize Components
+    this.initHomeScreen();
     this.initWelcomeCard();
     this.initPauseMenu();
     this.initPlacesMenu();
     this.initMusicControls();
     this.initSpellBar();
+    this.initGameDisclaimer();
     this.updateSpellDisplay();
   }
 
-  // 1. Welcome Prologue Card (Courier City Style)
+  // 1. Home Screen Integration (Courier City Style)
+  initHomeScreen() {
+    this.homeScreen = new HomeScreen((realm) => {
+      this.currentRealm = realm;
+      this.selectedSpawnId = realm.spawnId;
+
+      if (this.cardScriptDeva) this.cardScriptDeva.textContent = realm.script;
+      if (this.cardScriptLatin) this.cardScriptLatin.textContent = realm.name;
+
+      this.updateCardPlacesActive();
+
+      if (this.cardEl) {
+        this.cardEl.classList.remove('gone');
+      }
+    });
+
+    if (this.cardBackBtn) {
+      this.cardBackBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (this.cardEl) {
+          this.cardEl.classList.add('gone');
+        }
+        if (this.homeScreen) {
+          this.homeScreen.show();
+        }
+      });
+    }
+  }
+
+  // 2. Welcome Prologue Card (Courier City Style)
   initWelcomeCard() {
     if (!this.cardPlacesEl) return;
     this.cardPlacesEl.innerHTML = '';
@@ -58,14 +99,14 @@ export class HUDController {
     this.worldManager.landmarks.forEach(lm => {
       const btn = document.createElement('button');
       btn.className = `card-place-btn ${lm.id === this.selectedSpawnId ? 'active' : ''}`;
+      btn.dataset.id = lm.id;
       btn.innerHTML = `
         <span class="num">${lm.id}</span>
         <span class="name">${lm.name}</span>
       `;
       btn.addEventListener('click', () => {
         this.selectedSpawnId = lm.id;
-        document.querySelectorAll('.card-place-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        this.updateCardPlacesActive();
       });
       this.cardPlacesEl.appendChild(btn);
     });
@@ -84,6 +125,7 @@ export class HUDController {
       if (this.menuBtn) {
         this.menuBtn.hidden = false;
       }
+      this.triggerGameDisclaimer();
     };
 
     if (this.goBtn) {
@@ -98,7 +140,34 @@ export class HUDController {
     }
   }
 
-  // 2. Pause Menu & Menu Button (Courier City Style)
+  updateCardPlacesActive() {
+    if (!this.cardPlacesEl) return;
+    const btns = this.cardPlacesEl.querySelectorAll('.card-place-btn');
+    btns.forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.id, 10) === this.selectedSpawnId);
+    });
+  }
+
+  // 3. Opening Game Disclaimer
+  initGameDisclaimer() {
+    if (this.gdCloseBtn && this.gameDisclaimer) {
+      this.gdCloseBtn.addEventListener('click', () => {
+        this.gameDisclaimer.classList.add('hide');
+      });
+    }
+  }
+
+  triggerGameDisclaimer() {
+    if (!this.gameDisclaimer) return;
+    this.gameDisclaimer.classList.remove('hide');
+    setTimeout(() => {
+      if (this.gameDisclaimer) {
+        this.gameDisclaimer.classList.add('hide');
+      }
+    }, 9500);
+  }
+
+  // 4. Pause Menu & Menu Button (Courier City Style)
   initPauseMenu() {
     // Populate Pause Menu Places Grid
     if (this.pausePlaces) {
@@ -107,7 +176,6 @@ export class HUDController {
         const btn = document.createElement('button');
         btn.className = 'pause-place-btn';
         btn.innerHTML = `
-          <span class="pp-num">${lm.id}</span>
           <span class="pp-native">${lm.devanagari}</span>
           <span class="pp-latin">${lm.name}</span>
         `;
@@ -116,6 +184,25 @@ export class HUDController {
           this.togglePause(false);
         });
         this.pausePlaces.appendChild(btn);
+      });
+    }
+
+    // Populate Pause Menu Realms Grid (.pause-cities)
+    if (this.pauseCities) {
+      this.pauseCities.innerHTML = '';
+      HOGWARTS_REALMS.forEach(realm => {
+        const a = document.createElement('a');
+        a.href = `#${realm.id}`;
+        a.innerHTML = `
+          <span class="pc-script">${realm.script}</span>
+          <span class="pc-name">${realm.name}</span>
+        `;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.teleportToLandmark(realm.spawnId);
+          this.togglePause(false);
+        });
+        this.pauseCities.appendChild(a);
       });
     }
 
@@ -134,8 +221,11 @@ export class HUDController {
     if (this.pauseRestart) {
       this.pauseRestart.addEventListener('click', () => {
         this.togglePause(false);
-        if (this.cardEl) {
-          this.cardEl.classList.remove('gone');
+        if (this.menuBtn) {
+          this.menuBtn.hidden = true;
+        }
+        if (this.homeScreen) {
+          this.homeScreen.show();
         }
       });
     }
@@ -143,7 +233,9 @@ export class HUDController {
     // Escape Key listener
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
-        if (this.cardEl && !this.cardEl.classList.contains('gone')) {
+        const isHomeVisible = document.getElementById('home') && !document.getElementById('home').hidden;
+        const isCardVisible = this.cardEl && !this.cardEl.classList.contains('gone');
+        if (isHomeVisible || isCardVisible) {
           return;
         }
         this.togglePause(!this.isPaused);
@@ -161,7 +253,7 @@ export class HUDController {
     }
   }
 
-  // 3. Top Left Places Dropdown (Courier City Style)
+  // 5. Top Left Places Dropdown (Courier City Style)
   initPlacesMenu() {
     if (!this.placesList) return;
     this.placesList.innerHTML = '';
@@ -170,11 +262,8 @@ export class HUDController {
       const item = document.createElement('button');
       item.className = 'place-item';
       item.innerHTML = `
-        <div class="place-names">
-          <span class="place-native">${lm.devanagari}</span>
-          <span class="place-latin">${lm.name}</span>
-        </div>
-        <span class="place-key">${lm.key}</span>
+        <span class="place-num">${lm.key}</span>
+        <span class="place-name">${lm.devanagari} · ${lm.name}</span>
       `;
       item.addEventListener('click', () => {
         this.teleportToLandmark(lm.id);
@@ -205,9 +294,17 @@ export class HUDController {
     this.player.teleport(lm.pos, lm.look);
     this.dialogManager.showToast(lm.devanagari, `Arrived at ${lm.name}`, 3000);
     this.updateCoords(lm.name);
+
+    // Update active state in places dropdown
+    if (this.placesList) {
+      const items = this.placesList.querySelectorAll('.place-item');
+      items.forEach((it, idx) => {
+        it.classList.toggle('active', idx + 1 === id);
+      });
+    }
   }
 
-  // 4. Floating Music Player (Courier City Style)
+  // 6. Floating Music Player (Courier City Style)
   initMusicControls() {
     if (this.musicPlayBtn) {
       this.musicPlayBtn.addEventListener('click', () => {
@@ -229,18 +326,18 @@ export class HUDController {
     }
   }
 
-  // 5. Wand Spell Quick Bar
+  // 7. Wand Spell Quick Bar (Courier City Pill Aesthetic)
   initSpellBar() {
     if (!this.spellBar) return;
     this.spellBar.innerHTML = '';
 
     this.wandMagic.spells.forEach((s, idx) => {
       const btn = document.createElement('button');
-      btn.className = `spell-slot ${idx === this.wandMagic.activeSpellIndex ? 'active' : ''}`;
+      btn.className = `spell-pill ${idx === this.wandMagic.activeSpellIndex ? 'active' : ''}`;
       btn.id = `spell-slot-${s.id}`;
       btn.innerHTML = `
-        <span class="spell-key">${s.keyAlt}</span>
-        <span class="spell-name">${s.name}</span>
+        <span class="sp-key">${s.keyAlt}</span>
+        <span class="sp-name">${s.name}</span>
       `;
       btn.addEventListener('click', () => {
         this.wandMagic.selectSpell(idx);
@@ -268,7 +365,7 @@ export class HUDController {
     });
   }
 
-  // 6. Coordinates & Elevation HUD ticker with live FPS
+  // 8. Coordinates & Elevation HUD ticker with live FPS
   updateCoords(locationName = null) {
     if (!this.coordsEl) return;
 
@@ -291,6 +388,7 @@ export class HUDController {
       const dQuidditch = Math.hypot(p.x - 130, p.z - (-120));
       const dHagrid = Math.hypot(p.x - (-70), p.z - 90);
       const dForest = Math.hypot(p.x - (-110), p.z - 110);
+      const dLake = Math.hypot(p.x - 60, p.z - (-50));
 
       if (dLucknow < 45) {
         loc = 'Platform 9¾ · Lucknow Charbagh';
@@ -300,6 +398,8 @@ export class HUDController {
         loc = 'Hogwarts Castle · Dehradun Valley';
       } else if (dQuidditch < 55) {
         loc = 'Quidditch Pitch';
+      } else if (dLake < 55) {
+        loc = 'The Black Lake & Grounds';
       } else if (dHagrid < 40) {
         loc = 'Hagrid’s Hut & Pumpkin Patch';
       } else if (dForest < 45) {

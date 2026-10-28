@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Hogwarts Dehradun: The Lucknow 9¾ Express</title>
-  <meta name="description" content="A 3D browser-based open-world Harry Potter exploration game. Board the 5972 Express at Lucknow Charbagh Platform 9¾ and explore Hogwarts nestled in the Himalayan mountains of Dehradun with your wand." />
+  <title>Hogwarts Express: The Lucknow 9¾ to Dehradun Journey</title>
+  <meta name="description" content="A cel-shaded Harry Potter 3D open-world exploration game in the browser. Board the 5972 Express at Lucknow Charbagh Platform 9¾ and explore Hogwarts nestled in the Himalayan pine mountains of Dehradun." />
   <meta name="theme-color" content="#efe6d6" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
 
-  <!-- Google Fonts: Courier City Typography -->
+  <!-- Google Fonts & Courier City Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Rozha+One&family=Yatra+One&display=swap" rel="stylesheet">
@@ -16,22 +16,40 @@
   <link rel="stylesheet" href="./src/style.css" />
 </head>
 <body>
-  <!-- Three.js Canvas -->
+  <!-- 3D Open World Gameplay Canvas -->
   <canvas id="c"></canvas>
 
-  <!-- Top Left Menu Button (Courier City Style) -->
-  <button id="menu" aria-label="Menu: Hogwarts Landmarks">🏰 Hogwarts</button>
+  <!-- 1. Courier City Grand Home Screen -->
+  <section id="home">
+    <canvas id="home-c"></canvas>
+    <header class="masthead">
+      <h1>Hogwarts Express</h1>
+      <p class="intro">Seven enchanted chapters connecting Lucknow Charbagh Station to the ancient towers of Hogwarts hidden in the Himalayan foothills of Dehradun. Pick a realm.</p>
+      <div class="disclaimer-banner">
+        <span class="disclaimer-tag">DISCLAIMER</span>
+        <span>This game is created purely for Harry Potter fans, exploration, and fun in the browser. All train journeys, spells, and magical creatures are playful tributes—have fun exploring!</span>
+      </div>
+    </header>
 
-  <!-- Opening Story Card (Courier City Layout & Aesthetics) -->
-  <div id="card">
+    <!-- The 7 Hogwarts Realms Grid with 3D Spinning Models -->
+    <div class="cities"></div>
+
+    <footer class="foot">
+      <p class="keys">Walk with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> and the mouse. Cast spells with <kbd>Q</kbd>-<kbd>Z</kbd> & Left-Click. <kbd>E</kbd> to talk / mount broom, <kbd>1-8</kbd> to spawn. Sound on.</p>
+      <p class="touchnote">Explore Hogwarts grounds freely with your wand. Best experienced with headphones.</p>
+    </footer>
+  </section>
+
+  <!-- 2. Destination Card (Courier City Style) -->
+  <div id="card" class="gone">
     <div class="card-inner">
       <div class="card-script">
-        <div class="script-deva">हॉगवॉर्ट्स एक्सप्रेस · लखनऊ ९¾</div>
+        <div class="script-deva">हॉगवॉर्ट्स एक्सप्रेस</div>
         <div class="script-latin">Hogwarts Dehradun</div>
       </div>
 
-      <div class="card-story">
-        Between Platforms 9 and 10 of the majestic Indo-Saracenic arches of <b>Lucknow Charbagh Railway Station</b> lies the enchanted brick barrier to <b>Platform 9¾</b>. The scarlet <b>5972 Hogwarts Express</b> awaits to journey across the Shivalik foothills to <b>Hogwarts School</b>, hidden in the mist-crowned pine mountains of <b>Dehradun</b>.
+      <div class="card-disclaimer">
+        ⚠️ <em>Disclaimer: Created purely for fun & magical exploration. Wield your wand responsibly!</em>
       </div>
 
       <div id="card-spawn-selector" class="card-spawn-selector">
@@ -41,21 +59,27 @@
 
       <div class="card-go">
         <button id="go">Board Express</button>
-        <button id="wander">Wander</button>
+        <button id="wander">Wander Grounds</button>
       </div>
 
-      <div class="card-notes">Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or Arrow Keys to walk, mouse to look, Left Click to cast spells, <kbd>1-8</kbd> to spawn.</div>
+      <a id="card-back" class="card-back" href="#home">Choose another realm</a>
     </div>
   </div>
 
-  <!-- Pause Modal (Courier City Style) -->
+  <!-- 3. Top-Left Menu Button (In-Game) -->
+  <button id="menu" hidden aria-label="Menu: Hogwarts Realms">🏰 Realms</button>
+
+  <!-- 4. Pause Modal (Courier City Style) -->
   <div id="pause" hidden>
     <div class="pause-inner" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <p id="pause-title" class="pause-title">Paused</p>
       <button id="resume">Keep walking</button>
 
-      <p class="pause-label">Spawn to a place in Hogwarts & Lucknow</p>
+      <p class="pause-label">Spawn to a place in this realm</p>
       <div id="pause-places" class="pause-places"></div>
+
+      <p class="pause-label">Go to another realm</p>
+      <nav class="pause-cities" aria-label="Realms"></nav>
 
       <div class="pause-controls-guide">
         <p><b>Movement:</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or Arrows · <kbd>Shift</kbd> Sprint · <kbd>Space</kbd> Jump</p>
@@ -63,12 +87,19 @@
         <p><b>Atmosphere:</b> <kbd>T</kbd> Time of Day · <kbd>K</kbd> Weather · <kbd>V</kbd> Camera View · <kbd>M</kbd> Music · <kbd>N</kbd> Next Song</p>
       </div>
 
-      <button id="pause-restart" class="pause-home">Return to Welcome Card</button>
+      <button id="pause-restart" class="pause-home">See all the realms</button>
     </div>
   </div>
 
-  <!-- In-Game HUD Interface -->
+  <!-- 5. In-Game HUD Interface -->
   <div id="hud">
+    <!-- Floating Opening Game Disclaimer (Auto-dismisses in 9.5s) -->
+    <div id="game-disclaimer">
+      <span class="gd-icon">🪄</span>
+      <span class="gd-text"><strong>Hogwarts Dehradun:</strong> Welcome to the Himalayan realm. Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to explore, click to cast spells!</span>
+      <button id="gd-close" class="gd-close" aria-label="Dismiss disclaimer">✕</button>
+    </div>
+
     <!-- Bilingual Cinematic Toast Popup -->
     <div id="toast">
       <div class="t-deva"></div>
@@ -78,7 +109,7 @@
     <!-- Active Wand Mode Badge -->
     <div id="mode">Wand Spell: Lumos [Q]</div>
 
-    <!-- Interaction Prompt -->
+    <!-- Proximity Interaction Prompt -->
     <div id="prompt"></div>
 
     <!-- Subtitle Dialogue Box (Courier City Style) -->
@@ -120,7 +151,7 @@
     <div id="coords">📍 Platform 9¾ · Lucknow Charbagh · Elev 1.0m · 60 FPS</div>
 
     <!-- Bottom Right: Keybindings Quick Hint -->
-    <div id="hint">WASD Move · Click Cast · 1-8 Landmarks · Esc Guide</div>
+    <div id="hint">WASD walk · Shift run · Space jump · Left-Click wand cast · 1-8 spawn places · Q-F spells · E talk · V camera · T time · K weather · Esc menu</div>
   </div>
 
   <!-- Mobile Touch Controls -->

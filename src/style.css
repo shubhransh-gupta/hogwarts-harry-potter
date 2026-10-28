@@ -1,5 +1,67 @@
-/* Hogwarts Dehradun: Authentic Courier City Visual Styling & Design System */
+/* =========================================================
+   HOGWARTS DEHRADUN: COURIER CITY REVERSE-ENGINEERED UI SYSTEM
+   Authentic Indian Vintage Parchment, Cel-Shaded Detailing,
+   3D Orthographic Home Stage, Glass HUD & Floating Controls
+   ========================================================= */
 
+/* --- 1. LOCAL TYPOGRAPHY (COURIER CITY FONTS) --- */
+@font-face {
+  font-family: 'Rozha One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/rozha-one-devanagari-400-normal-Dv-vTJ5b.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Rozha One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/rozha-one-latin-400-normal-Dg3_0_Ac.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Yatra One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/yatra-one-devanagari-400-normal-DjZ9CKcD.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Yatra One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/yatra-one-latin-400-normal-DWZsRie6.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Mukta';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/mukta-devanagari-700-normal-D240QxyY.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Mukta';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/mukta-latin-700-normal-CI4CvK0O.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/baloo-2-devanagari-700-normal-D37Te3iF.woff2') format('woff2');
+}
+
+/* --- 2. COLOR VARIABLES & BASE STYLES --- */
 :root {
   --ink: #231a26;
   --ink-2: #5d5159;
@@ -39,52 +101,453 @@ button {
 }
 
 kbd {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  background: rgba(35, 26, 38, 0.15);
-  border: 1px solid rgba(35, 26, 38, 0.25);
+  font: 700 13px/1 'Mukta', sans-serif;
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 3px 6px 2px;
+  margin: 0 1px;
+  text-align: center;
+  border: 1.5px solid var(--ink-2);
+  border-bottom-width: 3px;
   border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.85em;
   color: var(--ink);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+  background: rgba(35, 26, 38, 0.08);
 }
 
 /* =========================================================
-   TOP LEFT MENU BUTTON (COURIER CITY AESTHETIC)
+   3. COURIER CITY HOME SCREEN (#home)
    ========================================================= */
-#menu {
+#home {
   position: fixed;
-  left: 16px;
-  top: 16px;
-  z-index: 25;
-  font: 700 14px/1 'Mukta', sans-serif;
-  color: var(--paper);
-  background: rgba(35, 26, 38, 0.88);
-  border: 1.5px solid rgba(239, 230, 214, 0.6);
-  border-radius: 6px;
-  padding: 9px 14px 7px;
+  inset: 0;
+  z-index: 20;
+  color: var(--ink);
+  overflow: hidden auto;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100%;
+  transition: opacity 1.2s ease, background-color 1.2s ease;
+}
+
+#home[hidden] {
+  display: none !important;
+}
+
+#home-c {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+
+#home > :not(#home-c) {
+  position: relative;
+  z-index: 2;
+}
+
+#home.lifting {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.masthead {
+  padding: clamp(20px, 4vh, 44px) clamp(16px, 4.5vw, 64px) 0;
+  display: flex;
+  gap: 32px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.masthead h1 {
+  font: 400 clamp(28px, 2.8vw, 42px)/1 'Rozha One', serif;
+  margin: 0;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.masthead .intro {
+  margin: 0;
+  max-width: 36em;
+  font-size: clamp(15px, 1.15vw, 18px);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* Disclaimer Banner (Courier City Style) */
+.disclaimer-banner {
+  margin: 10px 0 0;
+  max-width: 660px;
+  background: rgba(247, 179, 43, 0.16);
+  border: 1px solid rgba(247, 179, 43, 0.55);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font: 500 13px/1.4 'Mukta', system-ui, sans-serif;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: blur(6px);
+  text-align: left;
+}
+
+.disclaimer-tag {
+  background: var(--marigold);
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* 7 Realms Grid (Courier City Style) */
+.cities {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: start;
+  align-content: center;
+  gap: clamp(20px, 3vh, 36px) clamp(14px, 1.6vw, 28px);
+  padding: clamp(16px, 4vh, 48px) clamp(16px, 4.5vw, 64px);
+}
+
+.city {
+  --accent: #c8402a;
+  --p: 0;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
+  text-align: left;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "slot" "words" "step";
+  row-gap: 4px;
+  align-items: start;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-#menu:hover {
-  background: rgba(45, 34, 50, 0.98);
-  border-color: var(--marigold);
-  transform: translateY(-1px);
+#home.shown .city {
+  opacity: 1;
+  transform: none;
 }
 
-#menu[hidden] {
+#home.shown .city:nth-child(2) { transition-delay: 0.07s; }
+#home.shown .city:nth-child(3) { transition-delay: 0.14s; }
+#home.shown .city:nth-child(4) { transition-delay: 0.21s; }
+#home.shown .city:nth-child(5) { transition-delay: 0.28s; }
+#home.shown .city:nth-child(6) { transition-delay: 0.35s; }
+#home.shown .city:nth-child(7) { transition-delay: 0.42s; }
+
+.city:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 10px;
+}
+
+.slot {
+  grid-area: slot;
+  width: 100%;
+  max-width: 250px;
+  aspect-ratio: 1;
+  justify-self: center;
+}
+
+.words {
+  grid-area: words;
+  min-width: 0;
+  margin-top: 6px;
+}
+
+.script {
+  font: 400 clamp(32px, 2.9vw, 48px)/1.1 'Rozha One', 'Yatra One', serif;
+  transition: color 0.35s ease;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.latin {
+  font: 400 clamp(17px, 1.3vw, 21px)/1.1 'Rozha One', serif;
+  margin-top: 2px;
+  color: var(--ink);
+}
+
+.about {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.about b {
+  color: var(--ink);
+  font-weight: 700;
+  display: block;
+}
+
+.city:hover .script,
+.city:focus-visible .script {
+  color: var(--accent);
+}
+
+/* Station Route Line Progress (Courier City Style) */
+.route {
+  grid-area: route;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 0;
+  position: relative;
+  display: none;
+  flex-direction: column;
+  gap: clamp(8px, 1.55vh, 16px);
+  align-self: center;
+}
+
+.route:before,
+.route .fill {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 13px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.route:before {
+  bottom: 11px;
+  opacity: 0.28;
+  transition: opacity 0.35s ease;
+}
+
+.city:hover .route:before {
+  opacity: 0.55;
+}
+
+.route .fill {
+  height: 0;
+}
+
+.route li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 500;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.route li i {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 3px solid var(--accent);
+  flex: none;
+  position: relative;
+  z-index: 1;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.route li span {
+  transition: color 0.3s ease, opacity 0.3s ease;
+  color: var(--ink);
+}
+
+.step {
+  grid-area: step;
+  min-height: 1.5em;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Selection / Loading Transition on Home */
+#home.loading .cities {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-content: center;
+}
+
+#home.loading .city.chosen {
+  grid-template-columns: auto auto;
+  grid-template-areas: "slot route" "words route" "step step";
+  column-gap: clamp(20px, 2.6vw, 44px);
+  row-gap: 8px;
+  max-width: 900px;
+}
+
+#home.loading .city.chosen .slot {
+  width: clamp(200px, 36vh, 380px);
+  max-width: none;
+}
+
+#home.loading .city.chosen .words {
+  max-width: 24em;
+  margin-top: clamp(8px, 2.4vh, 26px);
+}
+
+#home.loading .city.chosen .script {
+  font-size: clamp(48px, 6vw, 96px);
+}
+
+#home.loading .city.chosen .latin {
+  font-size: clamp(20px, 1.8vw, 28px);
+}
+
+#home.loading .city.chosen .about {
+  font-size: clamp(15px, 1.1vw, 17px);
+}
+
+#home.loading .city.chosen .about b {
+  display: inline;
+}
+
+.city.chosen .route {
+  display: flex;
+}
+
+.city.gone {
+  opacity: 0 !important;
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0s 0.5s;
+}
+
+.city.chosen {
+  cursor: default;
+}
+
+.city.chosen .route li span {
+  opacity: 0.45;
+}
+
+.city.chosen .route li.lit span {
+  opacity: 1;
+}
+
+.city.chosen .route li.lit i {
+  background: var(--accent);
+}
+
+.city.chosen .route .fill {
+  height: calc(var(--p) * (100% - 24px));
+  transition: height 0.5s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.city.chosen .step {
+  opacity: 1;
+}
+
+.city.chosen .script {
+  color: var(--accent);
+}
+
+#home.ready .city.chosen .words,
+#home.ready .city.chosen .route,
+#home.ready .masthead,
+#home.ready .foot {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.foot {
+  padding: 0 clamp(16px, 4.5vw, 64px) clamp(16px, 3.5vh, 36px);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+
+.foot p {
+  margin: 0;
+}
+
+.touchnote {
+  display: none;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+#home.touch .touchnote {
+  display: block;
+}
+
+#home.touch .keys {
   display: none;
 }
 
-body:has(#card:not(.gone)) #menu {
-  display: none;
+/* Responsive Grid */
+@media (max-width: 1200px) {
+  .cities {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .slot {
+    max-width: 210px;
+  }
+}
+
+@media (max-width: 760px) {
+  .masthead {
+    gap: 8px;
+  }
+  .cities {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-top: 18px;
+  }
+  .city {
+    grid-template-columns: 34vw minmax(0, 1fr);
+    grid-template-areas: "slot words" "step step";
+    column-gap: 16px;
+    align-items: center;
+  }
+  .slot {
+    width: 34vw;
+    max-width: 170px;
+  }
+  .words {
+    margin-top: 0;
+  }
+  .script {
+    font-size: 34px;
+  }
+  .about {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  #home.loading .city.chosen {
+    grid-template-columns: 34vw minmax(0, 1fr);
+    grid-template-areas: "slot words" "route route" "step step";
+    column-gap: 16px;
+  }
+  #home.loading .city.chosen .slot {
+    width: 34vw;
+  }
+  #home.loading .city.chosen .script {
+    font-size: 36px;
+  }
+  .city.chosen .route {
+    margin-top: 10px;
+  }
 }
 
 /* =========================================================
-   WELCOME STORY CARD (COURIER CITY AESTHETIC)
+   4. WELCOME DESTINATION CARD (#card)
    ========================================================= */
 #card {
   position: fixed;
@@ -94,12 +557,11 @@ body:has(#card:not(.gone)) #menu {
   place-items: end center;
   pointer-events: none;
   color: var(--paper);
-  background: radial-gradient(circle at center, rgba(27, 20, 36, 0.4) 0%, rgba(18, 14, 23, 0.85) 100%);
   transition: opacity 0.8s ease;
 }
 
 #card.gone {
-  opacity: 0;
+  opacity: 0 !important;
   pointer-events: none;
   visibility: hidden;
 }
@@ -110,12 +572,11 @@ body:has(#card:not(.gone)) #menu {
 
 .card-inner {
   text-align: center;
-  padding: 24px 20px clamp(28px, 8vh, 80px);
+  padding: 16px 16px clamp(28px, 9vh, 90px);
   display: grid;
   justify-items: center;
   gap: 14px;
-  max-width: 680px;
-  width: 95vw;
+  max-width: 640px;
 }
 
 .card-script {
@@ -125,35 +586,28 @@ body:has(#card:not(.gone)) #menu {
   gap: 2px;
 }
 
-.script-deva {
-  font-family: 'Yatra One', serif;
-  font-size: clamp(34px, 4.8vw, 62px);
-  line-height: 1.15;
+.card-script .script-deva {
+  font: 400 clamp(44px, 6.5vw, 86px)/1.05 'Rozha One', 'Yatra One', serif;
   color: var(--marigold);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 18px rgba(20, 12, 30, 0.45);
 }
 
-.script-latin {
-  font-family: 'Rozha One', serif;
-  font-size: clamp(22px, 2.6vw, 36px);
-  line-height: 1.1;
+.card-script .script-latin {
+  font: 400 clamp(20px, 2.2vw, 32px)/1.1 'Rozha One', serif;
   color: var(--paper);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   letter-spacing: 0.02em;
 }
 
-.card-story {
-  font-size: clamp(14px, 1.1vw, 16px);
-  line-height: 1.5;
-  color: rgba(239, 230, 214, 0.9);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-  max-width: 580px;
-  margin: 0;
-}
-
-.card-story b {
-  color: var(--marigold);
-  font-weight: 700;
+.card-disclaimer {
+  font: 500 12.5px/1.3 'Mukta', system-ui, sans-serif;
+  color: var(--paper-2);
+  background: rgba(35, 26, 38, 0.45);
+  border: 1px dashed rgba(247, 179, 43, 0.55);
+  border-radius: 6px;
+  padding: 6px 14px;
+  margin: 2px 0;
+  text-align: center;
+  backdrop-filter: blur(8px);
 }
 
 .card-spawn-selector {
@@ -162,7 +616,6 @@ body:has(#card:not(.gone)) #menu {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  width: 100%;
 }
 
 .card-spawn-heading {
@@ -170,7 +623,7 @@ body:has(#card:not(.gone)) #menu {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(239, 230, 214, 0.8);
+  color: rgba(239, 230, 214, 0.75);
 }
 
 .card-places {
@@ -178,13 +631,13 @@ body:has(#card:not(.gone)) #menu {
   flex-wrap: wrap;
   gap: 6px;
   justify-content: center;
-  max-width: 600px;
+  max-width: 520px;
 }
 
 .card-place-btn {
-  background: var(--paper-2);
-  color: var(--ink);
-  border: 1.5px solid rgba(35, 26, 38, 0.2);
+  background: rgba(35, 26, 38, 0.7);
+  color: #f7efe0;
+  border: 1.5px solid rgba(247, 239, 224, 0.28);
   border-radius: 6px;
   padding: 6px 12px;
   font: 700 13px/1.2 'Mukta', system-ui, sans-serif;
@@ -193,32 +646,32 @@ body:has(#card:not(.gone)) #menu {
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
 }
 
-.card-place-btn:hover, .card-place-btn:focus-visible {
-  background: #ffffff;
-  border-color: var(--accent);
+.card-place-btn:hover,
+.card-place-btn:focus-visible {
+  background: rgba(45, 34, 50, 0.95);
+  border-color: var(--marigold);
   transform: translateY(-1px);
 }
 
 .card-place-btn.active {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
   border-color: var(--marigold);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .card-place-btn .num {
   font-size: 11px;
+  opacity: 0.75;
   font-family: monospace;
-  opacity: 0.8;
 }
 
 .card-go {
   display: flex;
   gap: 12px;
-  margin-top: 4px;
 }
 
 #go {
@@ -226,11 +679,11 @@ body:has(#card:not(.gone)) #menu {
   color: var(--ink);
   background: var(--paper);
   border: 0;
-  padding: 14px 32px 12px;
+  padding: 14px 30px 12px;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 3px 0 rgba(35, 26, 38, 0.6), 0 6px 18px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s ease;
+  box-shadow: 0 2px #231a2680;
+  transition: background 0.2s, transform 0.2s;
 }
 
 #go:hover {
@@ -241,193 +694,52 @@ body:has(#card:not(.gone)) #menu {
 #wander {
   font: 700 18px/1 'Mukta', sans-serif;
   color: var(--paper);
-  background: rgba(35, 26, 38, 0.55);
+  background: #231a2659;
   border: 2px solid var(--paper);
-  padding: 12px 26px 10px;
+  padding: 12px 24px 10px;
   border-radius: 6px;
   cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: all 0.15s ease;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s;
 }
 
 #wander:hover {
-  background: rgba(35, 26, 38, 0.85);
-  border-color: var(--marigold);
-  transform: translateY(-1px);
+  background: #231a268c;
 }
 
-.card-notes {
-  font-size: 13px;
-  color: rgba(239, 230, 214, 0.75);
-  margin-top: 2px;
-}
-
-.card-notes kbd {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* =========================================================
-   PAUSE MODAL (COURIER CITY AESTHETIC)
-   ========================================================= */
-#pause {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  background: rgba(27, 20, 36, 0.75);
-  backdrop-filter: blur(6px);
-}
-
-#pause[hidden] {
-  display: none;
-}
-
-.pause-inner {
-  width: min(720px, 95vw);
-  max-height: 92vh;
-  overflow: auto;
-  background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
-  color: var(--ink);
-  border-radius: 10px;
-  padding: clamp(22px, 4vw, 38px);
-  box-shadow: 0 18px 60px rgba(20, 12, 30, 0.65);
-}
-
-.pause-title {
-  margin: 0 0 16px;
-  font: 400 clamp(34px, 4vw, 46px)/1 'Rozha One', serif;
-  color: var(--crimson);
-}
-
-#resume {
-  font: 700 17px/1 'Mukta', sans-serif;
+.card-back {
   color: var(--paper);
-  background: var(--ink);
-  border: 0;
-  padding: 13px 28px 11px;
-  border-radius: 6px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition: background 0.15s ease;
-}
-
-#resume:hover {
-  background: #3a2c40;
-}
-
-.pause-label {
-  margin: 24px 0 10px;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink-2);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.pause-places {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.pause-place-btn {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px 8px;
-  border-radius: 6px;
-  border: 2px solid transparent;
-  color: var(--ink);
+  font-size: 14.5px;
+  opacity: 0.85;
   text-decoration: none;
-  background: var(--paper-2);
+  border-bottom: 1px dotted rgba(239, 230, 214, 0.6);
+  padding-bottom: 2px;
   cursor: pointer;
-  text-align: left;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s;
 }
 
-.pause-place-btn:hover, .pause-place-btn:focus-visible {
-  border-color: var(--accent);
-  background: #fff8ec;
-  transform: translateY(-1px);
-}
-
-.pause-place-btn .pp-num {
-  font-size: 11px;
-  font-family: monospace;
-  font-weight: 800;
-  color: var(--accent);
-}
-
-.pause-place-btn .pp-native {
-  font: 700 16px/1.3 'Yatra One', serif;
-  color: var(--crimson);
-}
-
-.pause-place-btn .pp-latin {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.pause-controls-guide {
-  background: rgba(35, 26, 38, 0.06);
-  border: 1px solid rgba(35, 26, 38, 0.12);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 16px;
-  color: var(--ink-2);
-}
-
-.pause-controls-guide p {
-  margin: 3px 0;
-}
-
-.pause-controls-guide b {
-  color: var(--ink);
-}
-
-.pause-home {
-  display: inline-block;
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.pause-home:hover {
-  color: var(--crimson);
+.card-back:hover {
+  opacity: 1;
 }
 
 /* =========================================================
-   HUD CONTAINER & SUB-COMPONENTS
+   5. IN-GAME HUD INTERFACE (#hud)
    ========================================================= */
 #hud {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 20;
   color: var(--paper);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
 }
 
-#hud > * {
-  pointer-events: auto;
+body:has(#card:not(.gone)) #hud,
+body:has(#home:not([hidden])) #hud {
+  display: none !important;
 }
 
-/* Reticle Center Dot (Courier City Style) */
-#hud::after {
+/* Center crosshair dot */
+#hud:after {
   content: "";
   position: absolute;
   left: 50%;
@@ -436,129 +748,50 @@ body:has(#card:not(.gone)) #menu {
   height: 4px;
   margin: -2px;
   border-radius: 50%;
-  background: rgba(255, 245, 230, 0.7);
-  pointer-events: none;
+  background: #fff5e6b3;
 }
 
-body:has(#card:not(.gone)) #hud,
-body:has(#pause:not([hidden])) #hud {
+/* Top-Left Menu Button (Courier City Style) */
+#menu {
+  position: fixed;
+  left: 14px;
+  top: 14px;
+  z-index: 25;
+  font: 700 14px/1 'Mukta', sans-serif;
+  color: var(--paper);
+  background: #231a268c;
+  border: 1.5px solid rgba(239, 230, 214, 0.7);
+  border-radius: 6px;
+  padding: 9px 14px 7px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s;
+}
+
+#menu:hover {
+  border-color: var(--marigold);
+}
+
+#menu[hidden] {
   display: none;
 }
 
-/* 1. Bilingual Toast Popup (Courier City exact layout) */
-#toast {
-  position: absolute;
-  left: 28px;
-  top: 24px;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-  pointer-events: none;
+body:has(#card:not(.gone)) #menu,
+body:has(#home:not([hidden])) #menu {
+  display: none !important;
 }
 
-#toast.show {
-  opacity: 1;
-}
-
-body:has(#menu:not([hidden])) #toast {
-  top: 62px;
-}
-
-.t-deva {
-  font-family: 'Yatra One', serif;
-  font-size: clamp(26px, 2.5vw, 32px);
-  line-height: 1.2;
-  color: var(--marigold);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-}
-
-.t-latin {
-  font-family: 'Rozha One', serif;
-  font-size: clamp(15px, 1.3vw, 18px);
-  letter-spacing: 0.04em;
-  opacity: 0.92;
-  color: #fff;
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.9);
-}
-
-/* 2. NPC Dialogue Subtitles (Courier City exact layout) */
-#talk {
-  position: absolute;
-  left: 50%;
-  bottom: 27%;
-  transform: translate(-50%, 8px);
-  max-width: min(580px, 88vw);
-  text-align: center;
-  opacity: 0;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none;
-}
-
-#talk.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-.k-who {
-  font: 400 15px/1.2 'Rozha One', serif;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--marigold);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
-}
-
-.k-native {
-  font: 400 clamp(24px, 2.4vw, 30px)/1.3 'Yatra One', serif;
-  margin-top: 3px;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
-}
-
-.k-english {
-  font-size: clamp(15px, 1.2vw, 17px);
-  line-height: 1.4;
-  opacity: 0.92;
-  margin-top: 3px;
-  color: var(--paper);
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.95);
-}
-
-/* 3. Interaction Prompt */
-#prompt {
-  position: absolute;
-  left: 50%;
-  bottom: 20%;
-  transform: translate(-50%);
-  font-weight: 700;
-  font-size: 16px;
-  background: rgba(43, 30, 48, 0.85);
-  border: 1px solid rgba(239, 230, 214, 0.3);
-  padding: 6px 16px;
-  border-radius: 6px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-}
-
-#prompt.show {
-  opacity: 1;
-}
-
-#prompt b {
-  color: var(--marigold);
-}
-
-/* 4. Top Left Places Dropdown */
+/* Top Left: Places HUD Button & Menu */
 #places-hud {
   position: fixed;
-  top: 16px;
-  left: 130px;
+  top: 14px;
+  left: 114px;
   z-index: 26;
   pointer-events: auto;
 }
 
 #places-btn {
-  background: rgba(35, 26, 38, 0.88);
+  background: rgba(35, 26, 38, 0.9);
   color: #f7efe0;
   border: 1.5px solid rgba(247, 239, 224, 0.4);
   border-radius: 8px;
@@ -570,7 +803,7 @@ body:has(#menu:not([hidden])) #toast {
   gap: 8px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
+  transition: background 0.2s, transform 0.2s, border-color 0.2s;
 }
 
 #places-btn:hover {
@@ -592,19 +825,19 @@ body:has(#menu:not([hidden])) #toast {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  width: 280px;
+  width: 290px;
   max-height: 70vh;
   overflow-y: auto;
   background: rgba(27, 20, 36, 0.95);
   color: #efe6d6;
   border: 1.5px solid rgba(239, 230, 214, 0.35);
   border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  padding: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   z-index: 28;
 }
 
@@ -618,7 +851,7 @@ body:has(#menu:not([hidden])) #toast {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(239, 230, 214, 0.6);
-  padding: 4px 6px 6px;
+  padding: 2px 4px 6px;
   border-bottom: 1px solid rgba(239, 230, 214, 0.15);
 }
 
@@ -631,69 +864,56 @@ body:has(#menu:not([hidden])) #toast {
 .place-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: rgba(239, 230, 214, 0.08);
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
   border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
   color: #efe6d6;
-  font: 600 13px/1.2 'Mukta', system-ui, sans-serif;
   cursor: pointer;
   text-align: left;
   transition: all 0.15s ease;
-  width: 100%;
 }
 
-.place-item:hover, .place-item:focus-visible {
-  background: rgba(247, 179, 43, 0.2);
+.place-item:hover {
+  background: rgba(247, 179, 43, 0.18);
   border-color: var(--marigold);
-  color: #ffffff;
-  transform: translateX(2px);
 }
 
-.place-item .place-names {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+.place-item.active {
+  background: rgba(247, 179, 43, 0.28);
+  border-color: var(--marigold);
 }
 
-.place-item .place-native {
-  font-size: 14px;
-  font-weight: 700;
+.place-num {
+  font-family: monospace;
+  font-size: 11px;
   color: var(--marigold);
-  font-family: 'Yatra One', serif;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
-.place-item .place-latin {
-  font-size: 12px;
-  opacity: 0.9;
+.place-name {
+  font-size: 12.5px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.place-item .place-key {
-  font-size: 11px;
-  font-family: monospace;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-/* 5. Top Right Floating Music Card (Courier City exact layout) */
+/* Top-Right: Floating Music Card (Courier City Style) */
 #music-hud {
   position: fixed;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   z-index: 26;
   pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(35, 26, 38, 0.88);
+  background: rgba(35, 26, 38, 0.9);
   color: #f7efe0;
   border: 1.5px solid rgba(247, 239, 224, 0.4);
   border-radius: 8px;
@@ -701,11 +921,11 @@ body:has(#menu:not([hidden])) #toast {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(8px);
   max-width: 320px;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 #music-hud:hover {
-  border-color: #2ed573;
+  border-color: var(--marigold);
 }
 
 .music-info {
@@ -727,7 +947,7 @@ body:has(#menu:not([hidden])) #toast {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 150px;
+  max-width: 140px;
 }
 
 .music-ctrls {
@@ -753,97 +973,217 @@ body:has(#menu:not([hidden])) #toast {
 }
 
 .music-btn:hover {
-  background: rgba(46, 213, 115, 0.25);
-  border-color: #2ed573;
-  color: #2ed573;
-  transform: translateY(-1px);
-}
-
-/* 6. Active Mode Badge */
-#mode {
-  position: absolute;
-  right: 235px;
-  top: 16px;
-  font-size: 12.5px;
-  letter-spacing: 0.03em;
-  background: rgba(35, 26, 38, 0.88);
-  border: 1.5px solid rgba(239, 230, 214, 0.35);
-  padding: 7px 12px;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
-}
-
-/* 7. Wand Spells Quick Bar */
-#spells-hud {
-  position: absolute;
-  left: 50%;
-  bottom: 50px;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-  background: rgba(27, 20, 36, 0.9);
-  border: 1.5px solid rgba(247, 179, 43, 0.4);
-  padding: 5px 8px;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  max-width: 95vw;
-  overflow-x: auto;
-}
-
-.spell-slot {
-  background: rgba(239, 230, 214, 0.08);
-  border: 1px solid rgba(239, 230, 214, 0.2);
-  color: var(--paper);
-  border-radius: 5px;
-  padding: 5px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  min-width: 65px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.spell-slot:hover {
   background: rgba(247, 179, 43, 0.25);
   border-color: var(--marigold);
-  transform: translateY(-1px);
-}
-
-.spell-slot.active {
-  background: rgba(116, 0, 1, 0.85);
-  border-color: var(--marigold);
-  box-shadow: 0 0 10px rgba(247, 179, 43, 0.5);
-}
-
-.spell-key {
-  font-size: 10px;
-  font-family: monospace;
-  font-weight: 800;
   color: var(--marigold);
 }
 
-.spell-name {
-  font-size: 11.5px;
-  font-weight: 700;
-  white-space: nowrap;
+/* Floating Opening Game Disclaimer Banner */
+#game-disclaimer {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: rgba(27, 20, 36, 0.94);
+  color: #efe6d6;
+  border: 1.5px solid rgba(247, 179, 43, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 13px/1.3 'Mukta', system-ui, sans-serif;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  animation: gd-slide 0.4s ease-out;
+  max-width: 90vw;
 }
 
-/* 8. Bottom Hint & Coordinates */
-#hint {
-  position: absolute;
-  right: 16px;
-  bottom: 12px;
-  text-align: right;
-  font-size: 11px;
-  opacity: 0.75;
+#game-disclaimer.hide {
+  opacity: 0;
+  transform: translate(-50%, -20px);
   pointer-events: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+@keyframes gd-slide {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.gd-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #efe6d6;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.gd-close:hover {
+  background: rgba(247, 179, 43, 0.8);
+  color: #111;
+}
+
+/* Cinematic Arrival Toast */
+#toast {
+  position: absolute;
+  left: 28px;
+  top: 64px;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+.t-deva {
+  font-family: 'Yatra One', 'Rozha One', serif;
+  font-size: 30px;
+  line-height: 1.2;
+  color: var(--marigold);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.t-latin {
+  font-family: 'Rozha One', serif;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+}
+
+/* Mode badge */
+#mode {
+  position: absolute;
+  right: 24px;
+  top: 60px;
+  font-size: 13.5px;
+  opacity: 0.8;
+  letter-spacing: 0.04em;
+}
+
+/* Proximity prompt */
+#prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  transform: translate(-50%);
+  font-weight: 700;
+  font-size: 16.5px;
+  background: #2b1e30a6;
+  border: 1px solid rgba(247, 179, 43, 0.4);
+  padding: 7px 16px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  backdrop-filter: blur(8px);
+}
+
+#prompt.show {
+  opacity: 1;
+}
+
+#prompt b, #prompt kbd {
+  color: var(--marigold);
+}
+
+/* NPC Dialogue box */
+#talk {
+  position: absolute;
+  left: 50%;
+  bottom: 29%;
+  transform: translate(-50%, 8px);
+  max-width: min(580px, 86vw);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  background: rgba(27, 20, 36, 0.85);
+  border: 1px solid rgba(247, 179, 43, 0.3);
+  border-radius: 8px;
+  padding: 12px 18px;
+  backdrop-filter: blur(8px);
+}
+
+#talk.show {
+  opacity: 1;
+  transform: translate(-50%);
+}
+
+.k-who {
+  font: 400 15px/1.2 'Rozha One', serif;
+  text-transform: capitalize;
+  color: var(--marigold);
+  letter-spacing: 0.05em;
+}
+
+.k-native {
+  font: 400 24px/1.3 'Yatra One', serif;
+  margin-top: 4px;
+}
+
+.k-english {
+  font-size: 15px;
+  line-height: 1.4;
+  opacity: 0.92;
+  margin-top: 4px;
+}
+
+/* Wand spell bar */
+#spells-hud {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  background: rgba(27, 20, 36, 0.85);
+  border: 1px solid rgba(239, 230, 214, 0.25);
+  border-radius: 8px;
+  padding: 5px 8px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.spell-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
+  color: #efe6d6;
+  border-radius: 5px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.spell-pill:hover,
+.spell-pill.active {
+  background: rgba(247, 179, 43, 0.22);
+  border-color: var(--marigold);
+  color: var(--marigold);
+}
+
+.spell-pill .sp-key {
+  font-family: monospace;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* Bottom status bar */
 #coords {
   position: absolute;
   left: 16px;
@@ -855,74 +1195,179 @@ body:has(#menu:not([hidden])) #toast {
   cursor: pointer;
 }
 
-/* 9. Mobile Touch Controls */
+#hint {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  text-align: right;
+  font-size: 11px;
+  opacity: 0.75;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* =========================================================
+   6. PAUSE MODAL (#pause)
+   ========================================================= */
+#pause {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #1b142473;
+  backdrop-filter: blur(6px);
+}
+
+#pause[hidden] {
+  display: none !important;
+}
+
+.pause-inner {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--ink);
+  border-radius: 10px;
+  padding: clamp(22px, 4vw, 40px);
+  box-shadow: 0 18px 60px #140c1e73;
+}
+
+.pause-title {
+  margin: 0 0 18px;
+  font: 400 clamp(34px, 4vw, 48px)/1 'Rozha One', serif;
+  color: var(--ink);
+}
+
+#resume {
+  font: 700 18px/1 'Mukta', sans-serif;
+  color: var(--paper);
+  background: var(--ink);
+  border: 0;
+  padding: 14px 28px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#resume:hover {
+  background: #3a2c40;
+}
+
+.pause-label {
+  margin: 26px 0 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.pause-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.pause-place-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 8px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--paper-2);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pause-place-btn:hover,
+.pause-place-btn:focus-visible {
+  border-color: var(--accent);
+  background: #fff8ec;
+}
+
+.pause-place-btn .pp-native {
+  font: 700 17px/1.3 'Rozha One', 'Yatra One', serif;
+  color: var(--accent);
+}
+
+.pause-place-btn .pp-latin {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.pause-cities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.pause-cities a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 8px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--paper-2);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pause-cities a:hover {
+  border-color: var(--accent);
+  background: #fff8ec;
+}
+
+.pause-cities a .pc-script {
+  font: 700 17px/1.3 'Rozha One', 'Yatra One', serif;
+  color: var(--accent);
+}
+
+.pause-cities a .pc-name {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.pause-controls-guide {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(35, 26, 38, 0.15);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.pause-controls-guide p {
+  margin: 4px 0;
+}
+
+.pause-home {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 15px;
+}
+
+/* Mobile Controls */
 #touch-controls {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 25;
   display: none;
-}
-
-@media (pointer: coarse) {
-  #touch-controls {
-    display: block;
-  }
-  #hint {
-    bottom: auto;
-    top: 60px;
-    font-size: 11px;
-  }
-  #hud::after {
-    display: none;
-  }
-  #mode {
-    display: none;
-  }
-}
-
-.touch-btn {
-  pointer-events: auto;
-  position: absolute;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: 2px solid rgba(247, 179, 43, 0.6);
-  background: rgba(116, 0, 1, 0.85);
-  color: #fff;
-  font-weight: 800;
-  font-size: 12px;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  touch-action: none;
-}
-
-#btn-touch-cast {
-  right: 24px;
-  bottom: 115px;
-}
-
-#btn-touch-jump {
-  right: 102px;
-  bottom: 115px;
-  background: rgba(35, 26, 38, 0.85);
-}
-
-@media (max-width: 650px) {
-  #places-hud {
-    left: 80px;
-    top: 12px;
-  }
-  #music-hud {
-    top: 12px;
-    right: 12px;
-    max-width: 200px;
-  }
-  #music-title {
-    max-width: 80px;
-  }
-  #mode {
-    display: none;
-  }
 }
