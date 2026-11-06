@@ -73,7 +73,7 @@ export class WorldManager {
     // Setup Weather Particles
     this.initWeatherParticles();
 
-    // Handcrafted Grounded Landmarks for spawning
+    // Handcrafted Grounded Landmarks for spawning across Hogwarts & Dehradun
     this.landmarks = [
       { id: 1, key: '1', name: 'Platform 9¾ (Lucknow)', devanagari: 'प्लेटफ़ॉर्म ९¾ (लखनऊ)', pos: new THREE.Vector3(-195, 1.0, -96), look: Math.PI / 2 },
       { id: 2, key: '2', name: 'Himalayan Viaduct & Train', devanagari: 'हिमालयन वायाडक्ट', pos: new THREE.Vector3(-60, 29.8, -9.2), look: 0 },
@@ -82,7 +82,15 @@ export class WorldManager {
       { id: 5, key: '5', name: 'Astronomy Tower Spire', devanagari: 'एस्ट्रोनॉमी टॉवर', pos: new THREE.Vector3(58, 52.0, 18), look: -Math.PI / 2 },
       { id: 6, key: '6', name: 'Quidditch Pitch', devanagari: 'क्विडिच पिच', pos: new THREE.Vector3(130, 1.2, -120), look: 0 },
       { id: 7, key: '7', name: 'Hagrid’s Hut & Pumpkins', devanagari: 'हैग्रिड की कुटिया', pos: new THREE.Vector3(-70, 0.8, 90), look: Math.PI / 4 },
-      { id: 8, key: '8', name: 'Forbidden Deodar Forest', devanagari: 'निषिद्ध देवदार वन', pos: new THREE.Vector3(-110, 0.8, 110), look: 0 }
+      { id: 8, key: '8', name: 'Forbidden Deodar Forest', devanagari: 'निषिद्ध देवदार वन', pos: new THREE.Vector3(-110, 0.8, 110), look: 0 },
+      { id: 9, key: '9', name: 'The Black Lake Cavern', devanagari: 'ब्लैक लेक की गुफा', pos: new THREE.Vector3(60, -2.5, -50), look: Math.PI / 2 },
+      { id: 10, key: '10', name: 'Gryffindor Dormitory', devanagari: 'ग्रिफ़िंडोर शयनकक्ष', pos: new THREE.Vector3(18, 22.0, 48), look: 0 },
+      { id: 11, key: '11', name: 'Slytherin Potions Dungeon', devanagari: 'स्लीदरिन पोशन्स कालकोठरी', pos: new THREE.Vector3(35, 1.5, 22), look: Math.PI },
+      { id: 12, key: '12', name: 'Ravenclaw Eagle Tower', devanagari: 'रेवेनक्लॉ ईगल टॉवर', pos: new THREE.Vector3(52, 42.0, 32), look: -Math.PI / 4 },
+      { id: 13, key: '13', name: 'Hufflepuff Hearth & Kitchens', devanagari: 'हफ़लपफ़ चूल्हा और रसोई', pos: new THREE.Vector3(12, 3.0, 35), look: Math.PI / 3 },
+      { id: 14, key: '14', name: 'Owlery Spire & Snow Owls', devanagari: 'उल्लू मिनार (आउलरी)', pos: new THREE.Vector3(-15, 34.0, 75), look: -Math.PI / 2 },
+      { id: 15, key: '15', name: 'Whomping Willow Ridge', devanagari: 'व्हॉम्पिंग विलो पहाड़ी', pos: new THREE.Vector3(-20, 1.8, 130), look: Math.PI * 0.75 },
+      { id: 16, key: '16', name: 'Charbagh Grand Concourse', devanagari: 'चारबाग भव्य मेहराब', pos: new THREE.Vector3(-160, 1.0, -75), look: 0 }
     ];
   }
 
@@ -104,8 +112,8 @@ export class WorldManager {
     this.sunLight = new THREE.DirectionalLight(time.sunColor, time.sunIntensity);
     this.sunLight.position.copy(time.sunPos);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.width = 2048;
-    this.sunLight.shadow.mapSize.height = 2048;
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
     this.sunLight.shadow.camera.near = 0.5;
     this.sunLight.shadow.camera.far = 450;
     this.sunLight.shadow.camera.left = -160;

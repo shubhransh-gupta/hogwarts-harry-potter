@@ -25,9 +25,9 @@ class HogwartsGame {
       powerPreference: 'high-performance'
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
 
@@ -151,7 +151,7 @@ class HogwartsGame {
           this.selectAndCastSpell(9); // Sectumsempra
           break;
 
-        // Landmark spawn hotkeys (Digit 1-8)
+        // Landmark spawn hotkeys (Digit 1-9)
         case 'Digit1':
           this.hudController.teleportToLandmark(1);
           break;
@@ -175,6 +175,9 @@ class HogwartsGame {
           break;
         case 'Digit8':
           this.hudController.teleportToLandmark(8);
+          break;
+        case 'Digit9':
+          this.hudController.teleportToLandmark(9);
           break;
       }
     });
@@ -420,10 +423,7 @@ class HogwartsGame {
       }
     }
 
-    // 7. Update HUD Coordinates & FPS ticker
-    this.hudController.updateCoords();
-
-    // 8. Render
+    // 7. Render
     this.renderer.render(this.scene, this.camera);
   }
 }

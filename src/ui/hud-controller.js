@@ -386,50 +386,8 @@ export class HUDController {
     });
   }
 
-  // 8. Coordinates & Elevation HUD ticker with live FPS
-  updateCoords(locationName = null) {
-    if (!this.coordsEl) return;
-
-    // Calculate FPS
-    const now = performance.now();
-    this.frameCount++;
-    if (now - this.lastFrameTime >= 1000) {
-      this.currentFps = Math.round((this.frameCount * 1000) / (now - this.lastFrameTime));
-      this.frameCount = 0;
-      this.lastFrameTime = now;
-    }
-
-    const p = this.player.position;
-    let loc = locationName;
-
-    if (!loc) {
-      const dLucknow = Math.hypot(p.x - (-180), p.z - (-80));
-      const dCastle = Math.hypot(p.x - 40, p.z - 40);
-      const dViaduct = Math.hypot(p.x - (-60), p.z - (-12));
-      const dQuidditch = Math.hypot(p.x - 130, p.z - (-120));
-      const dHagrid = Math.hypot(p.x - (-70), p.z - 90);
-      const dForest = Math.hypot(p.x - (-110), p.z - 110);
-      const dLake = Math.hypot(p.x - 60, p.z - (-50));
-
-      if (dLucknow < 45) {
-        loc = 'Platform 9¾ · Lucknow Charbagh';
-      } else if (dViaduct < 35 && p.y > 18) {
-        loc = 'Himalayan Viaduct & 5972 Express';
-      } else if (dCastle < 60) {
-        loc = 'Hogwarts Castle · Dehradun Valley';
-      } else if (dQuidditch < 55) {
-        loc = 'Quidditch Pitch';
-      } else if (dLake < 55) {
-        loc = 'The Black Lake & Grounds';
-      } else if (dHagrid < 40) {
-        loc = 'Hagrid’s Hut & Pumpkin Patch';
-      } else if (dForest < 45) {
-        loc = 'Forbidden Himalayan Forest';
-      } else {
-        loc = 'Dehradun Shivalik Valley';
-      }
-    }
-
-    this.coordsEl.textContent = `📍 ${loc} · 30.3165° N, 78.0322° E · Elev ${(640 + p.y * 10).toFixed(0)}m · ${this.currentFps} FPS`;
+  // 8. Coordinates & Elevation HUD ticker removed as requested
+  updateCoords() {
+    // Intentionally removed as per user requirement
   }
 }

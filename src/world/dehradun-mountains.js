@@ -171,7 +171,7 @@ export function createDehradunMountains() {
     const mtn = new THREE.Mesh(mtnGeo, rockMat);
     mtn.position.set(m.x, m.height / 2 - 4, m.z);
     mtn.rotation.y = (i * 1.7) % Math.PI;
-    mtn.castShadow = true;
+    mtn.castShadow = false; // Background mountain meshes do not need expensive dynamic shadow casting
     mtn.receiveShadow = true;
     landscapeGroup.add(mtn);
 
@@ -192,7 +192,7 @@ export function createDehradunMountains() {
     const snowCap = new THREE.Mesh(snowCapGeo, snowMat);
     snowCap.position.set(m.x, m.height - (m.height * 0.17) - 4, m.z);
     snowCap.rotation.y = mtn.rotation.y;
-    snowCap.castShadow = true;
+    snowCap.castShadow = false;
     snowCap.receiveShadow = true;
     landscapeGroup.add(snowCap);
   });
