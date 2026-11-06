@@ -41,6 +41,12 @@ export class Player {
 
     this.walkCycle = 0;
     this.isMoving = false;
+    this.isCinematic = false;
+    this.castAnimTimer = 0;
+  }
+
+  playCastAnimation() {
+    this.castAnimTimer = 0.35;
   }
 
   createPlayerMesh() {
@@ -211,6 +217,26 @@ export class Player {
   }
 
   update(delta, elapsed, worldManager) {
+    if (this.isCinematic) {
+      return;
+    }
+
+    // Wand Cast "Swish and Flick" Whip Motion
+    if (this.castAnimTimer > 0 && this.rightArmGroup) {
+      this.castAnimTimer -= delta;
+      const t = 1.0 - (this.castAnimTimer / 0.35);
+      if (t < 0.28) {
+        this.rightArmGroup.rotation.x = -Math.PI / 3.0 + t * 1.2;
+      } else if (t < 0.68) {
+        this.rightArmGroup.rotation.x = -Math.PI / 1.75;
+        this.rightArmGroup.rotation.y = 0.28;
+      } else {
+        const settle = (t - 0.68) / 0.32;
+        this.rightArmGroup.rotation.x = -Math.PI / 1.75 + settle * (Math.PI / 1.75 - Math.PI / 3.8);
+        this.rightArmGroup.rotation.y = (1.0 - settle) * 0.28;
+      }
+    }
+
     // 1. Water & Swimming Engine (Black Lake / Great Lake)
     const water = worldManager ? worldManager.isWaterAt(this.position.x, this.position.z) : { isWater: false };
 

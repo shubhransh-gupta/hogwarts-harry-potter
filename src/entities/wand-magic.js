@@ -1,14 +1,16 @@
-// Wand Magic System & Spell Casting Engine
+// Wand Magic System & Movie-Grade Spell Casting Engine
 // Lumos, Expecto Patronum, Wingardium Leviosa, Incendio, Aguamenti, Alohomora, Accio
-// Includes particle systems, dynamic point lights, object levitation, and sound triggers
+// Features authentic "Swish and Flick" wand motions, trailing particle ribbon physics,
+// dynamic moving point lights, explosive impact detonations, scorch marks, and camera shake.
 
 import * as THREE from 'three';
 import { soundSynth } from '../audio/sound-synthesizer.js';
 
 export class WandMagic {
-  constructor(scene, player) {
+  constructor(scene, player, worldManager = null) {
     this.scene = scene;
     this.player = player;
+    this.worldManager = worldManager;
 
     this.spells = [
       { id: 'lumos', name: 'Lumos', key: '1', keyAlt: 'Q', color: '#88d8ff', desc: 'Illuminating Wand Light' },
@@ -23,22 +25,54 @@ export class WandMagic {
     this.activeSpellIndex = 0;
     this.isLumosActive = false;
 
-    // Lumos Wand Tip Light
-    this.lumosLight = new THREE.PointLight(0xaae8ff, 0, 16);
+    // Lumos Wand Tip Light & Radial Glow Halo
+    this.lumosLight = new THREE.PointLight(0xb0e8ff, 0, 18);
     this.scene.add(this.lumosLight);
 
-    const orbGeo = new THREE.SphereGeometry(0.12, 12, 8);
+    const orbGeo = new THREE.SphereGeometry(0.14, 16, 12);
     const orbMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
     this.lumosOrb = new THREE.Mesh(orbGeo, orbMat);
     this.scene.add(this.lumosOrb);
 
-    // Active projectiles & spell effects
+    // Wand Tip Muzzle Flash
+    this.wandFlashLight = new THREE.PointLight(0xffffff, 0, 8);
+    this.scene.add(this.wandFlashLight);
+    this.wandFlashTimer = 0;
+
+    // Active projectiles, particles, and impact effects
     this.projectiles = [];
     this.levitatingObjects = [];
     this.particles = [];
+    this.scorchMarks = [];
 
-    // Particle pool material
-    this.sparkleGeo = new THREE.BufferGeometry();
+    // Camera shake intensity
+    this.cameraShakeIntensity = 0;
+
+    // High-performance particle system pool
+    this.maxParticles = 600;
+    this.particlePositions = new Float32Array(this.maxParticles * 3);
+    this.particleColors = new Float32Array(this.maxParticles * 3);
+    this.particleData = [];
+
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(this.particlePositions, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(this.particleColors, 3));
+
+    const pMat = new THREE.PointsMaterial({
+      size: 0.16,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    this.particlePoints = new THREE.Points(pGeo, pMat);
+    this.scene.add(this.particlePoints);
+  }
+
+  setWorldManager(wm) {
+    this.worldManager = wm;
   }
 
   getActiveSpell() {
@@ -66,9 +100,22 @@ export class WandMagic {
     return this.castSpellById(spell.id, interactiveTargets);
   }
 
+  triggerWandCastFlash(colorHex) {
+    if (this.player && this.player.playCastAnimation) {
+      this.player.playCastAnimation();
+    }
+    const wandPos = this.player.getWandTipWorldPosition();
+    this.wandFlashLight.color.setHex(colorHex);
+    this.wandFlashLight.intensity = 5.0;
+    this.wandFlashLight.position.copy(wandPos);
+    this.wandFlashTimer = 0.12;
+
+    // Spawn 10 bursting sparks at wand tip
+    this.spawnParticleBurst(wandPos, colorHex, 12, 4.0);
+  }
+
   castSpellById(spellId, interactiveTargets = []) {
     const wandPos = this.player.getWandTipWorldPosition();
-    // Aim vector in the direction player is facing
     const forwardVec = new THREE.Vector3(
       Math.sin(this.player.mesh.rotation.y),
       0,
@@ -100,8 +147,23 @@ export class WandMagic {
     this.isLumosActive = !this.isLumosActive;
     soundSynth.playSpellLumos(this.isLumosActive);
 
-    this.lumosLight.intensity = this.isLumosActive ? 3.5 : 0;
+    this.lumosLight.intensity = this.isLumosActive ? 4.5 : 0;
     this.lumosOrb.material.opacity = this.isLumosActive ? 1.0 : 0.0;
+
+    const wandPos = this.player.getWandTipWorldPosition();
+    this.triggerWandCastFlash(0xb0e8ff);
+
+    if (this.isLumosActive) {
+      // Spawn floating radiant dust motes around the player
+      for (let i = 0; i < 25; i++) {
+        const offset = new THREE.Vector3(
+          (Math.random() - 0.5) * 3,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 3
+        );
+        this.addParticle(wandPos.clone().add(offset), new THREE.Vector3(0, 0.4 + Math.random() * 0.4, 0), 0xd8f4ff, 2.5);
+      }
+    }
 
     return {
       spell: this.isLumosActive ? 'Lumos!' : 'Nox!',
@@ -113,47 +175,61 @@ export class WandMagic {
   // 2. EXPECTO PATRONUM (Silver Stag Patronus)
   castPatronus(wandPos, forwardVec) {
     soundSynth.playSpellPatronus();
+    this.triggerWandCastFlash(0xecf8ff);
+    this.cameraShakeIntensity = 0.08;
 
-    // Create silver stag spirit mesh
+    // Create silver stag spirit mesh with translucent ethereal shader
     const patronusGroup = new THREE.Group();
     patronusGroup.position.copy(wandPos);
 
-    // Ethereal glowing silver material
     const stagMat = new THREE.MeshBasicMaterial({
       color: 0xecf8ff,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.9,
       wireframe: false
     });
 
-    // Stylized deer / stag body
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.6, 8), stagMat);
+    // Anatomical stag body
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 1.8, 10), stagMat);
     body.rotation.z = Math.PI / 2;
     body.position.y = 1.0;
     patronusGroup.add(body);
 
-    // Antlers (Majestic branched antlers)
-    [-0.2, 0.2].forEach(x => {
-      const antler = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.9, 6), stagMat);
-      antler.position.set(x, 2.1, 0.6);
-      antler.rotation.z = x * 1.5;
+    // Branched majestic antlers
+    [-0.22, 0.22].forEach(x => {
+      const antler = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, 1.1, 6), stagMat);
+      antler.position.set(x, 2.2, 0.7);
+      antler.rotation.z = x * 1.6;
       antler.rotation.x = -0.4;
       patronusGroup.add(antler);
+
+      // Antler prongs
+      const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.04, 0.4, 6), stagMat);
+      prong.position.set(x * 1.8, 2.4, 0.5);
+      prong.rotation.z = x * 2.2;
+      patronusGroup.add(prong);
     });
 
     // Neck & Head
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.8, 8), stagMat);
-    neck.position.set(0, 1.4, 0.7);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.9, 8), stagMat);
+    neck.position.set(0, 1.45, 0.75);
     neck.rotation.x = -Math.PI / 4;
     patronusGroup.add(neck);
 
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.6, 8), stagMat);
-    head.position.set(0, 1.7, 1.1);
+    const head = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.65, 8), stagMat);
+    head.position.set(0, 1.78, 1.15);
     head.rotation.x = Math.PI / 2;
     patronusGroup.add(head);
 
-    // Dynamic silver light
-    const stagLight = new THREE.PointLight(0xcceeff, 4.0, 24);
+    // Ethereal silver aura ring
+    const auraGeo = new THREE.TorusGeometry(1.2, 0.05, 8, 24);
+    auraGeo.rotateX(Math.PI / 2);
+    const auraMesh = new THREE.Mesh(auraGeo, stagMat);
+    auraMesh.position.y = 1.0;
+    patronusGroup.add(auraMesh);
+
+    // Dynamic silver moonlight illumination
+    const stagLight = new THREE.PointLight(0xcceeff, 5.0, 32);
     stagLight.position.y = 1.2;
     patronusGroup.add(stagLight);
 
@@ -161,9 +237,11 @@ export class WandMagic {
 
     this.projectiles.push({
       mesh: patronusGroup,
-      velocity: forwardVec.clone().multiplyScalar(22).add(new THREE.Vector3(0, 4.0, 0)),
+      velocity: forwardVec.clone().multiplyScalar(24).add(new THREE.Vector3(0, 3.5, 0)),
+      light: stagLight,
+      color: 0xcceeff,
       life: 0,
-      maxLife: 3.2,
+      maxLife: 3.5,
       type: 'patronus'
     });
 
@@ -177,10 +255,11 @@ export class WandMagic {
   // 3. WINGARDIUM LEVIOSA (Object Levitation)
   castLeviosa(wandPos, forwardVec, targets = []) {
     soundSynth.playSpellLeviosa();
+    this.triggerWandCastFlash(0xffd54f);
 
-    // Check for nearby levitatable objects (e.g. Hagrid's pumpkins)
+    // Check for nearby levitatable objects (e.g. Hagrid's giant pumpkins)
     let levitatedTarget = null;
-    let minDist = 30;
+    let minDist = 35;
 
     targets.forEach(obj => {
       if (obj.userData && obj.userData.isLevitatable) {
@@ -196,17 +275,22 @@ export class WandMagic {
 
     if (levitatedTarget) {
       levitatedTarget.userData.isFloating = !levitatedTarget.userData.isFloating;
-      levitatedTarget.userData.targetY = levitatedTarget.userData.isFloating ? levitatedTarget.userData.baseY + 5.5 : levitatedTarget.userData.baseY;
+      levitatedTarget.userData.targetY = levitatedTarget.userData.isFloating ? levitatedTarget.userData.baseY + 6.0 : levitatedTarget.userData.baseY;
       this.levitatingObjects.push(levitatedTarget);
+
+      // Golden levitation aura particles around the pumpkin
+      const targetPos = new THREE.Vector3();
+      levitatedTarget.getWorldPosition(targetPos);
+      this.spawnParticleBurst(targetPos, 0xffd54f, 25, 3.0);
 
       return {
         spell: 'Wingardium Leviosa!',
         color: '#ffd54f',
-        message: 'Swish and flick! Giant pumpkin floating in mid-air!'
+        message: 'Swish and flick! Giant pumpkin floating gracefully in mid-air!'
       };
     }
 
-    // Swirling golden levitation beam
+    // Swirling golden levitation beam with helical sparks
     this.createSpellBeam(wandPos, forwardVec, 0xf7b32b);
 
     return {
@@ -216,58 +300,81 @@ export class WandMagic {
     };
   }
 
-  // 4. INCENDIO (Fire Blast)
+  // 4. INCENDIO (Fire Blast with Explosive Impact Detonation)
   castIncendio(wandPos, forwardVec) {
     soundSynth.playSpellIncendio();
+    this.triggerWandCastFlash(0xff4500);
+    this.cameraShakeIntensity = 0.06;
 
     const fireGroup = new THREE.Group();
     fireGroup.position.copy(wandPos);
 
-    const fireballGeo = new THREE.SphereGeometry(0.35, 10, 8);
-    const fireballMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+    // Core fireball
+    const fireballGeo = new THREE.SphereGeometry(0.38, 12, 10);
+    const fireballMat = new THREE.MeshBasicMaterial({ color: 0xff3b00 });
     const fireball = new THREE.Mesh(fireballGeo, fireballMat);
     fireGroup.add(fireball);
 
-    const fireLight = new THREE.PointLight(0xff6600, 3.5, 14);
+    // Surrounding flame corona
+    const coronaGeo = new THREE.SphereGeometry(0.55, 10, 8);
+    const coronaMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.65 });
+    const corona = new THREE.Mesh(coronaGeo, coronaMat);
+    fireGroup.add(corona);
+
+    const fireLight = new THREE.PointLight(0xff6600, 4.5, 18);
     fireGroup.add(fireLight);
 
     this.scene.add(fireGroup);
 
     this.projectiles.push({
       mesh: fireGroup,
-      velocity: forwardVec.clone().multiplyScalar(28),
+      velocity: forwardVec.clone().multiplyScalar(32),
+      light: fireLight,
+      color: 0xff4500,
       life: 0,
-      maxLife: 1.8,
+      maxLife: 2.2,
       type: 'incendio'
     });
 
     return {
       spell: 'Incendio!',
       color: '#ff5722',
-      message: 'A crackling burst of magical flame shoots from your wand!'
+      message: 'A roaring crackling blast of magical fire shoots from your wand!'
     };
   }
 
-  // 5. AGUAMENTI (Water Stream)
+  // 5. AGUAMENTI (Water Jet with Gravity Droplets & Splash)
   castAguamenti(wandPos, forwardVec) {
-    soundSynth.playSpellPatronus(); // watery chime
+    soundSynth.playWaterSplash();
+    this.triggerWandCastFlash(0x00bcd4);
 
     const waterGroup = new THREE.Group();
     waterGroup.position.copy(wandPos);
 
-    const streamGeo = new THREE.CylinderGeometry(0.08, 0.28, 2.4, 8);
+    const streamGeo = new THREE.CylinderGeometry(0.09, 0.32, 2.6, 8);
     streamGeo.rotateX(Math.PI / 2);
-    const streamMat = new THREE.MeshBasicMaterial({ color: 0x55ddff, transparent: true, opacity: 0.75 });
+    const streamMat = new THREE.MeshStandardMaterial({
+      color: 0x55ddff,
+      roughness: 0.1,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.82
+    });
     const stream = new THREE.Mesh(streamGeo, streamMat);
     waterGroup.add(stream);
+
+    const waterLight = new THREE.PointLight(0x40c4ff, 2.5, 12);
+    waterGroup.add(waterLight);
 
     this.scene.add(waterGroup);
 
     this.projectiles.push({
       mesh: waterGroup,
-      velocity: forwardVec.clone().multiplyScalar(24),
+      velocity: forwardVec.clone().multiplyScalar(26).add(new THREE.Vector3(0, 1.5, 0)),
+      light: waterLight,
+      color: 0x00bcd4,
       life: 0,
-      maxLife: 1.4,
+      maxLife: 1.6,
       type: 'aguamenti'
     });
 
@@ -281,26 +388,32 @@ export class WandMagic {
   // 6. ALOHOMORA (Unlocking Charm)
   castAlohomora(wandPos, forwardVec) {
     soundSynth.playSpellAlohomora();
+    this.triggerWandCastFlash(0xffd700);
 
     const keyholeGroup = new THREE.Group();
-    keyholeGroup.position.copy(wandPos).add(forwardVec.clone().multiplyScalar(3.0));
+    keyholeGroup.position.copy(wandPos).add(forwardVec.clone().multiplyScalar(2.5));
 
     // Spinning golden locking rune
-    const ringGeo = new THREE.TorusGeometry(0.65, 0.06, 8, 16);
-    const runeMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+    const ringGeo = new THREE.TorusGeometry(0.75, 0.07, 8, 20);
+    const runeMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
     const runeRing = new THREE.Mesh(ringGeo, runeMat);
     keyholeGroup.add(runeRing);
 
-    const runeBar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.8, 0.08), runeMat);
+    const runeBar = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.95, 0.09), runeMat);
     keyholeGroup.add(runeBar);
+
+    const runeLight = new THREE.PointLight(0xffcc00, 3.0, 10);
+    keyholeGroup.add(runeLight);
 
     this.scene.add(keyholeGroup);
 
     this.projectiles.push({
       mesh: keyholeGroup,
-      velocity: forwardVec.clone().multiplyScalar(4.0),
+      velocity: forwardVec.clone().multiplyScalar(5.5),
+      light: runeLight,
+      color: 0xffd700,
       life: 0,
-      maxLife: 1.2,
+      maxLife: 1.4,
       type: 'alohomora'
     });
 
@@ -314,6 +427,10 @@ export class WandMagic {
   // 7. ACCIO (Summoning Charm)
   castAccio(wandPos, forwardVec) {
     soundSynth.playSpellLeviosa();
+    this.triggerWandCastFlash(0xab47bc);
+
+    // Purple gravitational tractor beam
+    this.createSpellBeam(wandPos, forwardVec, 0xab47bc);
 
     return {
       spell: 'Accio!',
@@ -323,56 +440,214 @@ export class WandMagic {
   }
 
   createSpellBeam(wandPos, forwardVec, colorHex) {
-    const beamGeo = new THREE.CylinderGeometry(0.04, 0.12, 6.0, 6);
+    const beamGeo = new THREE.CylinderGeometry(0.06, 0.16, 7.0, 8);
     beamGeo.rotateX(Math.PI / 2);
-    const beamMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.85 });
+    const beamMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.88 });
     const beam = new THREE.Mesh(beamGeo, beamMat);
-    beam.position.copy(wandPos).add(forwardVec.clone().multiplyScalar(3.0));
+    beam.position.copy(wandPos).add(forwardVec.clone().multiplyScalar(3.5));
     this.scene.add(beam);
 
     this.projectiles.push({
       mesh: beam,
-      velocity: forwardVec.clone().multiplyScalar(15),
+      velocity: forwardVec.clone().multiplyScalar(18),
+      color: colorHex,
       life: 0,
-      maxLife: 0.6,
+      maxLife: 0.7,
       type: 'beam'
     });
   }
 
-  update(delta, elapsed) {
+  // Particle Utilities
+  addParticle(pos, vel, colorHex, maxLife = 1.0) {
+    if (this.particleData.length >= this.maxParticles) {
+      this.particleData.shift();
+    }
+    const color = new THREE.Color(colorHex);
+    this.particleData.push({
+      x: pos.x,
+      y: pos.y,
+      z: pos.z,
+      vx: vel.x,
+      vy: vel.y,
+      vz: vel.z,
+      r: color.r,
+      g: color.g,
+      b: color.b,
+      life: 0,
+      maxLife
+    });
+  }
+
+  spawnParticleBurst(pos, colorHex, count = 16, speed = 3.5) {
+    for (let i = 0; i < count; i++) {
+      const vel = new THREE.Vector3(
+        (Math.random() - 0.5) * speed * 2,
+        Math.random() * speed * 1.5,
+        (Math.random() - 0.5) * speed * 2
+      );
+      this.addParticle(pos, vel, colorHex, 0.6 + Math.random() * 0.8);
+    }
+  }
+
+  createGroundScorch(pos) {
+    const scorchGeo = new THREE.CircleGeometry(1.4, 16);
+    scorchGeo.rotateX(-Math.PI / 2);
+    const scorchMat = new THREE.MeshBasicMaterial({
+      color: 0x180b06,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false
+    });
+    const scorch = new THREE.Mesh(scorchGeo, scorchMat);
+    scorch.position.set(pos.x, pos.y + 0.04, pos.z);
+    this.scene.add(scorch);
+
+    this.scorchMarks.push({ mesh: scorch, life: 0, maxLife: 7.0 });
+  }
+
+  update(delta, elapsed, camera = null) {
     // 1. Keep Lumos light at player wand tip
     const wandPos = this.player.getWandTipWorldPosition();
     this.lumosLight.position.copy(wandPos);
     this.lumosOrb.position.copy(wandPos);
 
-    // 2. Update active projectiles
+    // Wand tip cast flash decay
+    if (this.wandFlashTimer > 0) {
+      this.wandFlashTimer -= delta;
+      if (this.wandFlashTimer <= 0) {
+        this.wandFlashLight.intensity = 0;
+      }
+    }
+
+    // Camera shake decay
+    if (this.cameraShakeIntensity > 0 && camera) {
+      camera.position.x += (Math.random() - 0.5) * this.cameraShakeIntensity;
+      camera.position.y += (Math.random() - 0.5) * this.cameraShakeIntensity;
+      this.cameraShakeIntensity = Math.max(0, this.cameraShakeIntensity - delta * 0.4);
+    }
+
+    // 2. Update active projectiles & spawn trailing sparks
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.life += delta;
-      p.mesh.position.addScaledVector(p.velocity, delta);
 
-      if (p.type === 'patronus') {
-        p.mesh.rotation.y = Math.atan2(p.velocity.x, p.velocity.z);
-        p.mesh.position.y += Math.sin(p.life * 4) * 0.05;
-      } else if (p.type === 'alohomora') {
-        p.mesh.rotation.z += delta * 6;
+      // Projectile gravity (especially for Aguamenti water)
+      if (p.type === 'aguamenti') {
+        p.velocity.y -= 12.0 * delta;
       }
 
-      if (p.life >= p.maxLife) {
+      p.mesh.position.addScaledVector(p.velocity, delta);
+
+      // Trailing sparks along projectile flight
+      if (p.type === 'incendio') {
+        this.spawnParticleBurst(p.mesh.position, 0xff7700, 3, 1.2);
+      } else if (p.type === 'patronus') {
+        p.mesh.rotation.y = Math.atan2(p.velocity.x, p.velocity.z);
+        p.mesh.position.y += Math.sin(p.life * 5) * 0.06;
+        this.spawnParticleBurst(p.mesh.position, 0xcceeff, 2, 0.8);
+      } else if (p.type === 'aguamenti') {
+        this.spawnParticleBurst(p.mesh.position, 0x55ddff, 2, 0.6);
+      } else if (p.type === 'alohomora') {
+        p.mesh.rotation.z += delta * 7;
+      }
+
+      // Ground collision detection
+      let hitGround = false;
+      if (this.worldManager) {
+        const groundY = this.worldManager.getGroundHeight(p.mesh.position.x, p.mesh.position.z, p.mesh.position.y);
+        if (p.mesh.position.y <= groundY + 0.3) {
+          hitGround = true;
+          p.mesh.position.y = groundY;
+        }
+      }
+
+      // Detonation on impact or expiration
+      if (hitGround || p.life >= p.maxLife) {
+        if (p.type === 'incendio') {
+          // Explosive fire detonation!
+          soundSynth.playSpellIncendio();
+          this.spawnParticleBurst(p.mesh.position, 0xff4500, 35, 6.0);
+          this.spawnParticleBurst(p.mesh.position, 0xffd54f, 20, 4.0);
+          this.createGroundScorch(p.mesh.position);
+          this.cameraShakeIntensity = 0.12;
+        } else if (p.type === 'patronus') {
+          this.spawnParticleBurst(p.mesh.position, 0xecf8ff, 30, 4.5);
+        } else if (p.type === 'aguamenti') {
+          soundSynth.playWaterSplash();
+          this.spawnParticleBurst(p.mesh.position, 0x00bcd4, 25, 4.0);
+        }
+
         this.scene.remove(p.mesh);
         this.projectiles.splice(i, 1);
       }
     }
 
-    // 3. Update levitating objects
+    // 3. Update active particle points
+    const posArr = this.particlePositions;
+    const colArr = this.particleColors;
+    let activeCount = 0;
+
+    for (let i = this.particleData.length - 1; i >= 0; i--) {
+      const pt = this.particleData[i];
+      pt.life += delta;
+
+      if (pt.life >= pt.maxLife) {
+        this.particleData.splice(i, 1);
+        continue;
+      }
+
+      pt.x += pt.vx * delta;
+      pt.y += pt.vy * delta;
+      pt.z += pt.vz * delta;
+      pt.vy -= 4.0 * delta; // slight gravity
+
+      const lifeRatio = 1.0 - (pt.life / pt.maxLife);
+
+      posArr[activeCount * 3 + 0] = pt.x;
+      posArr[activeCount * 3 + 1] = pt.y;
+      posArr[activeCount * 3 + 2] = pt.z;
+
+      colArr[activeCount * 3 + 0] = pt.r * lifeRatio;
+      colArr[activeCount * 3 + 1] = pt.g * lifeRatio;
+      colArr[activeCount * 3 + 2] = pt.b * lifeRatio;
+
+      activeCount++;
+    }
+
+    // Zero out unused particle slots
+    for (let i = activeCount; i < this.maxParticles; i++) {
+      posArr[i * 3 + 1] = -1000;
+    }
+
+    this.particlePoints.geometry.attributes.position.needsUpdate = true;
+    this.particlePoints.geometry.attributes.color.needsUpdate = true;
+
+    // 4. Update scorch marks
+    for (let i = this.scorchMarks.length - 1; i >= 0; i--) {
+      const sm = this.scorchMarks[i];
+      sm.life += delta;
+      if (sm.life >= sm.maxLife) {
+        this.scene.remove(sm.mesh);
+        this.scorchMarks.splice(i, 1);
+      } else {
+        sm.mesh.material.opacity = 0.75 * (1.0 - sm.life / sm.maxLife);
+      }
+    }
+
+    // 5. Update levitating objects
     for (let i = this.levitatingObjects.length - 1; i >= 0; i--) {
       const obj = this.levitatingObjects[i];
       if (obj.userData) {
-        // Smooth lerp to target height
         obj.position.y += (obj.userData.targetY - obj.position.y) * 5 * delta;
         if (obj.userData.isFloating) {
           obj.position.y += Math.sin(elapsed * 3 + obj.id) * 0.015;
           obj.rotation.y += delta * 0.8;
+          // Spawn golden hovering motes
+          if (Math.random() < 0.25) {
+            const pos = new THREE.Vector3();
+            obj.getWorldPosition(pos);
+            this.addParticle(pos, new THREE.Vector3(0, 0.3, 0), 0xffd54f, 1.2);
+          }
         }
       }
     }

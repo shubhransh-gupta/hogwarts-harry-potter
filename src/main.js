@@ -10,6 +10,7 @@ import { NPCManager } from './entities/npcs.js';
 import { DialogManager } from './ui/dialog-manager.js';
 import { HUDController } from './ui/hud-controller.js';
 import { soundSynth } from './audio/sound-synthesizer.js';
+import { TrainJourneyController } from './world/train-journey.js';
 
 class HogwartsGame {
   constructor() {
@@ -37,9 +38,11 @@ class HogwartsGame {
     this.worldManager = new WorldManager(this.scene);
     this.player = new Player(this.scene, this.camera);
     this.wandMagic = new WandMagic(this.scene, this.player);
+    this.wandMagic.setWorldManager(this.worldManager);
     this.goldenSnitch = new GoldenSnitch(this.scene);
     this.npcManager = new NPCManager(this.scene);
     this.dialogManager = new DialogManager();
+    this.trainJourney = new TrainJourneyController(this.scene, this.camera, this.player, this.worldManager, this.dialogManager);
     this.hudController = new HUDController(this.worldManager, this.wandMagic, this.player, this.dialogManager);
 
     window.game = this;
@@ -281,10 +284,24 @@ class HogwartsGame {
   }
 
   interactProximity() {
+    // If cinematic is active, allow skipping
+    if (this.trainJourney && this.trainJourney.isActive) {
+      this.trainJourney.completeJourney();
+      return;
+    }
+
+    // Check if near Hogwarts Express at Lucknow Platform 9¾ FIRST
+    const distToTrain = this.player.position.distanceTo(new THREE.Vector3(-204, 1.0, -108));
+    if (distToTrain < 16.0) {
+      this.trainJourney.startJourney();
+      return;
+    }
+
     const dialog = this.npcManager.checkProximity(this.player.position, 6.0);
     if (dialog) {
       this.dialogManager.showDialog(dialog);
     } else {
+
       // Check if near Nimbus 2000 Broom on Quidditch pitch (130, 1.2, -120)
       const dPitch = this.player.position.distanceTo(new THREE.Vector3(130, 1.2, -120));
       if (dPitch < 8.5) {
@@ -325,21 +342,30 @@ class HogwartsGame {
     // 1. Update Player & Camera with Multi-tier Ground Physics
     this.player.update(delta, elapsed, this.worldManager);
 
-    // 2. Update World Zones & Weather Particles
+    // 2. Update Cinematic Train Journey
+    if (this.trainJourney) {
+      this.trainJourney.update(delta);
+    }
+
+    // 3. Update World Zones & Weather Particles
     this.worldManager.update(delta, elapsed, this.player.position);
 
-    // 3. Update Wand Magic & Projectiles
-    this.wandMagic.update(delta, elapsed);
+    // 4. Update Wand Magic Particles, Trailing Ribbons & Screen Shake
+    this.wandMagic.update(delta, elapsed, this.camera);
 
-    // 4. Update Golden Snitch
+    // 5. Update Golden Snitch
     this.goldenSnitch.update(delta, elapsed, this.player.position);
     if (this.goldenSnitch.checkCatch(this.player.position)) {
       this.dialogManager.showToast('गोल्डन स्निच!', 'You caught the Golden Snitch! +150 Points for Gryffindor!', 4500);
     }
 
-    // 5. Proximity Prompt Check for NPCs, Broom & Water
+    // 6. Proximity Prompt Check for Train Boarding, NPCs, Broom & Water
+    const distToTrain = this.player.position.distanceTo(new THREE.Vector3(-204, 1.0, -108));
     const nearbyDialog = this.npcManager.checkProximity(this.player.position, 6.0);
-    if (nearbyDialog) {
+
+    if (distToTrain < 16.0 && (!this.trainJourney || !this.trainJourney.isActive)) {
+      this.dialogManager.setPrompt(`🚂 Press <b>[E]</b> to Board the Hogwarts Express 5972!`);
+    } else if (nearbyDialog) {
       this.dialogManager.setPrompt(`Press <b>[E]</b> to talk to ${nearbyDialog.who}`);
     } else {
       const dPitch = this.player.position.distanceTo(new THREE.Vector3(130, 1.2, -120));
@@ -352,10 +378,10 @@ class HogwartsGame {
       }
     }
 
-    // 6. Update HUD Coordinates & FPS ticker
+    // 7. Update HUD Coordinates & FPS ticker
     this.hudController.updateCoords();
 
-    // 7. Render
+    // 8. Render
     this.renderer.render(this.scene, this.camera);
   }
 }

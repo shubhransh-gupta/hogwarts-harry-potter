@@ -17,7 +17,8 @@ export class SkyDome {
     const geo = new THREE.SphereGeometry(700, 36, 24);
     const mat = new THREE.MeshBasicMaterial({
       side: THREE.BackSide,
-      depthWrite: false
+      depthWrite: false,
+      fog: false
     });
 
     this.skyMesh = new THREE.Mesh(geo, mat);
@@ -44,7 +45,8 @@ export class SkyDome {
       map: coronaTexture,
       transparent: true,
       blending: THREE.AdditiveBlending,
-      depthWrite: false
+      depthWrite: false,
+      fog: false
     });
 
     this.celestialCorona = new THREE.Mesh(coronaGeo, coronaMat);
