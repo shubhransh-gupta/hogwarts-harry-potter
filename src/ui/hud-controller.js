@@ -62,20 +62,27 @@ export class HUDController {
     this.updateSpellDisplay();
   }
 
-  // 1. Home Screen Integration (Courier City Style)
+  // 1. Home Screen Integration (OpenDesign Realistic Architecture)
   initHomeScreen() {
     this.homeScreen = new HomeScreen((realm) => {
       this.currentRealm = realm;
       this.selectedSpawnId = realm.spawnId;
 
-      if (this.cardScriptDeva) this.cardScriptDeva.textContent = realm.script;
-      if (this.cardScriptLatin) this.cardScriptLatin.textContent = realm.name;
-
-      this.updateCardPlacesActive();
-
-      if (this.cardEl) {
-        this.cardEl.classList.remove('gone');
+      try {
+        soundSynth.init();
+        soundSynth.resume();
+      } catch (err) {
+        console.warn('Audio start:', err);
       }
+
+      this.teleportToLandmark(realm.spawnId);
+      if (this.cardEl) {
+        this.cardEl.classList.add('gone');
+      }
+      if (this.menuBtn) {
+        this.menuBtn.hidden = false;
+      }
+      this.triggerGameDisclaimer();
     });
 
     if (this.cardBackBtn) {
@@ -232,7 +239,7 @@ export class HUDController {
 
     // Escape Key listener
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Escape') {
+      if (e.code === 'Escape' || e.key === 'Escape') {
         const isHomeVisible = document.getElementById('home') && !document.getElementById('home').hidden;
         const isCardVisible = this.cardEl && !this.cardEl.classList.contains('gone');
         if (isHomeVisible || isCardVisible) {
