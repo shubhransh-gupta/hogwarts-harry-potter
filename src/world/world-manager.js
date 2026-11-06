@@ -2,6 +2,7 @@
 // Handles Time-of-Day cycles, Snow/Rain weather particles, and zone coordination
 
 import * as THREE from 'three';
+import { SkyDome } from './sky-dome.js';
 import { createLucknowStation } from './lucknow-station.js';
 import { createHogwartsCastle } from './hogwarts-castle.js';
 import { createDehradunMountains, HIMALAYAN_MOUNTAINS } from './dehradun-mountains.js';
@@ -74,8 +75,8 @@ export class WorldManager {
 
     // Handcrafted Grounded Landmarks for spawning
     this.landmarks = [
-      { id: 1, key: '1', name: 'Platform 9¾ (Lucknow)', devanagari: 'प्लेटफ़ॉर्म ९¾ (लखनऊ)', pos: new THREE.Vector3(-200, 1.0, -96), look: 0 },
-      { id: 2, key: '2', name: 'Himalayan Viaduct & Train', devanagari: 'हिमालयन वायाडक्ट', pos: new THREE.Vector3(-60, 29.8, -12), look: Math.PI / 2 },
+      { id: 1, key: '1', name: 'Platform 9¾ (Lucknow)', devanagari: 'प्लेटफ़ॉर्म ९¾ (लखनऊ)', pos: new THREE.Vector3(-195, 1.0, -96), look: Math.PI / 2 },
+      { id: 2, key: '2', name: 'Himalayan Viaduct & Train', devanagari: 'हिमालयन वायाडक्ट', pos: new THREE.Vector3(-60, 29.8, -9.2), look: 0 },
       { id: 3, key: '3', name: 'Castle Courtyard & Clock', devanagari: 'हॉगवॉर्ट्स प्रांगण', pos: new THREE.Vector3(40, 12.6, 58), look: 0 },
       { id: 4, key: '4', name: 'The Great Hall', devanagari: 'द ग्रेट हॉल', pos: new THREE.Vector3(25, 12.6, 30), look: Math.PI },
       { id: 5, key: '5', name: 'Astronomy Tower Spire', devanagari: 'एस्ट्रोनॉमी टॉवर', pos: new THREE.Vector3(58, 52.0, 18), look: -Math.PI / 2 },
@@ -88,10 +89,16 @@ export class WorldManager {
   initLightingAndFog() {
     const time = this.timesOfDay[this.currentTimeIndex];
 
-    this.scene.background = new THREE.Color(time.skyColor);
-    this.scene.fog = new THREE.FogExp2(time.fogColor, 0.0035);
+    this.scene.fog = new THREE.FogExp2(time.fogColor, 0.0028);
 
-    this.ambientLight = new THREE.AmbientLight(time.ambientColor, 1.25);
+    // Realistic Atmospheric Sky Dome
+    this.skyDome = new SkyDome(this.scene);
+
+    // Natural ambient hemisphere bounce light (Sky vs Ground)
+    this.hemiLight = new THREE.HemisphereLight(time.skyColor, 0x221a14, 0.95);
+    this.scene.add(this.hemiLight);
+
+    this.ambientLight = new THREE.AmbientLight(time.ambientColor, 0.75);
     this.scene.add(this.ambientLight);
 
     this.sunLight = new THREE.DirectionalLight(time.sunColor, time.sunIntensity);
@@ -100,11 +107,12 @@ export class WorldManager {
     this.sunLight.shadow.mapSize.width = 2048;
     this.sunLight.shadow.mapSize.height = 2048;
     this.sunLight.shadow.camera.near = 0.5;
-    this.sunLight.shadow.camera.far = 400;
-    this.sunLight.shadow.camera.left = -150;
-    this.sunLight.shadow.camera.right = 150;
-    this.sunLight.shadow.camera.top = 150;
-    this.sunLight.shadow.camera.bottom = -150;
+    this.sunLight.shadow.camera.far = 450;
+    this.sunLight.shadow.camera.left = -160;
+    this.sunLight.shadow.camera.right = 160;
+    this.sunLight.shadow.camera.top = 160;
+    this.sunLight.shadow.camera.bottom = -160;
+    this.sunLight.shadow.bias = -0.0004;
     this.scene.add(this.sunLight);
   }
 
@@ -320,8 +328,13 @@ export class WorldManager {
     this.currentTimeIndex = (this.currentTimeIndex + 1) % this.timesOfDay.length;
     const time = this.timesOfDay[this.currentTimeIndex];
 
-    this.scene.background.setHex(time.skyColor);
+    if (this.skyDome) {
+      this.skyDome.setTimeOfDay(time.id);
+    }
     this.scene.fog.color.setHex(time.fogColor);
+    if (this.hemiLight) {
+      this.hemiLight.color.setHex(time.skyColor);
+    }
     this.ambientLight.color.setHex(time.ambientColor);
     this.sunLight.color.setHex(time.sunColor);
     this.sunLight.intensity = time.sunIntensity;

@@ -4,27 +4,32 @@
 
 import * as THREE from 'three';
 import { createHogwartsExpress } from './hogwarts-express.js';
+import {
+  getCharbaghBrickMat,
+  getCobblestoneMat,
+  getGildedBrassMat
+} from './materials-engine.js';
 
 export function createLucknowStation() {
   const stationGroup = new THREE.Group();
   stationGroup.name = 'LucknowCharbaghPlatform934';
 
-  // Materials
-  const tarmacMat = new THREE.MeshToonMaterial({ color: 0x222026 }); // Station yard ground
-  const platformMat = new THREE.MeshToonMaterial({ color: 0x3d3a40 }); // Concrete platform flags
-  const platformEdgeMat = new THREE.MeshToonMaterial({ color: 0xf5df65 }); // Yellow tactile safety line
-  const redBrickMat = new THREE.MeshToonMaterial({ color: 0x8b2525 }); // Lucknow Charbagh terracotta brick
-  const darkBrickMat = new THREE.MeshToonMaterial({ color: 0x661818 });
-  const creamStoneMat = new THREE.MeshToonMaterial({ color: 0xded0b8 }); // Sandstone trim
-  const ironGreenMat = new THREE.MeshToonMaterial({ color: 0x1f2e26 }); // Victorian iron pillars
-  const glassRoofMat = new THREE.MeshToonMaterial({ color: 0x98c5d6, transparent: true, opacity: 0.55 });
-  const ballastMat = new THREE.MeshToonMaterial({ color: 0x2c2b30 }); // Track gravel
-  const steelRailMat = new THREE.MeshToonMaterial({ color: 0x4a4a52 });
-  const sleeperMat = new THREE.MeshToonMaterial({ color: 0x38281e });
-  const woodMat = new THREE.MeshToonMaterial({ color: 0x4a3220 });
-  const brassMat = new THREE.MeshToonMaterial({ color: 0xd4af37 });
-  const whitePlasterMat = new THREE.MeshToonMaterial({ color: 0xf2ece4 }); // Charbagh domes
-  const yellowSignMat = new THREE.MeshToonMaterial({ color: 0xf7b32b }); // Indian Railways yellow board
+  // High-Fidelity PBR Station Materials
+  const tarmacMat = new THREE.MeshStandardMaterial({ color: 0x242428, roughness: 0.9 });
+  const platformMat = getCobblestoneMat(12, 3);
+  const platformEdgeMat = new THREE.MeshStandardMaterial({ color: 0xf5df65, roughness: 0.4 });
+  const redBrickMat = getCharbaghBrickMat(8, 4);
+  const darkBrickMat = getCharbaghBrickMat(8, 4);
+  const creamStoneMat = new THREE.MeshStandardMaterial({ color: 0xded0b8, roughness: 0.8 });
+  const ironGreenMat = new THREE.MeshStandardMaterial({ color: 0x18241e, metalness: 0.7, roughness: 0.4 });
+  const glassRoofMat = new THREE.MeshStandardMaterial({ color: 0x98c5d6, transparent: true, opacity: 0.55, roughness: 0.1 });
+  const ballastMat = new THREE.MeshStandardMaterial({ color: 0x323036, roughness: 0.95 });
+  const steelRailMat = new THREE.MeshStandardMaterial({ color: 0x5a5c64, metalness: 0.8, roughness: 0.35 });
+  const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x38281e, roughness: 0.9 });
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x4a3220, roughness: 0.85 });
+  const brassMat = getGildedBrassMat();
+  const whitePlasterMat = new THREE.MeshStandardMaterial({ color: 0xf2ece4, roughness: 0.75 });
+  const yellowSignMat = new THREE.MeshStandardMaterial({ color: 0xf7b32b, roughness: 0.45 });
   const warmLightMat = new THREE.MeshBasicMaterial({ color: 0xffd175 });
 
   // === 1. EXPANSIVE STATION GROUND SLAB (Eliminates green grass!) ===

@@ -47,15 +47,15 @@ export class Player {
     const group = new THREE.Group();
     group.name = 'PlayerWizard';
 
-    // Materials
-    const skinMat = new THREE.MeshToonMaterial({ color: 0xdca882 });
-    const hairMat = new THREE.MeshToonMaterial({ color: 0x1f1a18 });
-    const robeMat = new THREE.MeshToonMaterial({ color: 0x18181c }); // Hogwarts black robe
-    const scarfMat1 = new THREE.MeshToonMaterial({ color: 0x740001 }); // Gryffindor Scarlet
-    const scarfMat2 = new THREE.MeshToonMaterial({ color: 0xf7b32b }); // Gryffindor Gold
-    const pantsMat = new THREE.MeshToonMaterial({ color: 0x222226 });
-    const shoeMat = new THREE.MeshToonMaterial({ color: 0x111112 });
-    const wandWoodMat = new THREE.MeshToonMaterial({ color: 0x4a2e18 });
+    // High-Fidelity PBR Wizard Materials
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdca882, roughness: 0.65 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x1f1a18, roughness: 0.85 });
+    const robeMat = new THREE.MeshStandardMaterial({ color: 0x18181c, roughness: 0.88, metalness: 0.05 }); // Hogwarts wool robe
+    const scarfMat1 = new THREE.MeshStandardMaterial({ color: 0x7e1215, roughness: 0.75 }); // Gryffindor Scarlet
+    const scarfMat2 = new THREE.MeshStandardMaterial({ color: 0xdf9a20, roughness: 0.75 }); // Gryffindor Gold
+    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x222226, roughness: 0.9 });
+    const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111112, roughness: 0.45, metalness: 0.1 });
+    const wandWoodMat = new THREE.MeshStandardMaterial({ color: 0x4a2e18, roughness: 0.5 });
 
     // 0. Contact Drop Shadow Decal (Grounded shadow blob)
     const shadowGeo = new THREE.CircleGeometry(0.62, 16);

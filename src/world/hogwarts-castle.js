@@ -2,19 +2,27 @@
 // Great Hall, Astronomy Tower, 4 House Spires, Clock Tower Courtyard, Viaduct Bridge, Floating Candles
 
 import * as THREE from 'three';
+import {
+  getCastleStoneMat,
+  getSlateRoofMat,
+  getStainedGlassMat,
+  getCobblestoneMat,
+  getGildedBrassMat,
+  getRealisticWaterMat
+} from './materials-engine.js';
 
 export function createHogwartsCastle() {
   const castleGroup = new THREE.Group();
   castleGroup.name = 'HogwartsCastleDehradun';
 
-  // Materials
-  const castleStoneMat = new THREE.MeshToonMaterial({ color: 0x5a575e }); // Weathered Himalayan stone
-  const darkStoneMat = new THREE.MeshToonMaterial({ color: 0x3d3a42 });
-  const slateRoofMat = new THREE.MeshToonMaterial({ color: 0x222e38 }); // Deep slate blue-grey
-  const stainedGlassMat = new THREE.MeshBasicMaterial({ color: 0xffda73 }); // Golden candlelight glow
-  const goldBrassMat = new THREE.MeshToonMaterial({ color: 0xd4af37 });
-  const woodMat = new THREE.MeshToonMaterial({ color: 0x4a3525 });
-  const waterMat = new THREE.MeshToonMaterial({ color: 0x205060, transparent: true, opacity: 0.85 });
+  // High-Fidelity PBR Castle Materials
+  const castleStoneMat = getCastleStoneMat(4, 3);
+  const darkStoneMat = getCastleStoneMat(6, 2);
+  const slateRoofMat = getSlateRoofMat(4, 4);
+  const stainedGlassMat = getStainedGlassMat();
+  const goldBrassMat = getGildedBrassMat();
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d2716, roughness: 0.85 });
+  const waterMat = getRealisticWaterMat();
 
   // Floating candle list for animation
   const floatingCandles = [];
@@ -307,7 +315,7 @@ export function createHogwartsCastle() {
 
   // Cobblestone Quad Floor
   const quadFloorGeo = new THREE.BoxGeometry(38, 0.6, 32);
-  const quadFloor = new THREE.Mesh(quadFloorGeo, darkStoneMat);
+  const quadFloor = new THREE.Mesh(quadFloorGeo, getCobblestoneMat(8, 8));
   quadFloor.position.set(0, 0.3, 0);
   courtyard.add(quadFloor);
 

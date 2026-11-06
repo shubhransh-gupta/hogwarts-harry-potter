@@ -3,6 +3,16 @@
 
 import * as THREE from 'three';
 import { createHogwartsExpress } from './hogwarts-express.js';
+import {
+  getValleyGrassMat,
+  getMountainRockMat,
+  getMountainSnowMat,
+  getCastleStoneMat,
+  getCobblestoneMat,
+  getRealisticWaterMat,
+  getPineTrunkMat,
+  getPineNeedleMat
+} from './materials-engine.js';
 
 // Deterministic mountain peak coordinates for visual rendering and physics elevation
 export const HIMALAYAN_MOUNTAINS = [];
@@ -29,19 +39,15 @@ export function createDehradunMountains() {
   const landscapeGroup = new THREE.Group();
   landscapeGroup.name = 'DehradunHimalayanLandscape';
 
-  // Materials
-  const grassMat = new THREE.MeshToonMaterial({ color: 0x385c34 }); // Himalayan valley green
-  const rockMat = new THREE.MeshToonMaterial({ color: 0x4d5154 });
-  const snowMat = new THREE.MeshToonMaterial({ color: 0xe8eef5 }); // Distant snow peaks
-  const viaductStoneMat = new THREE.MeshToonMaterial({ color: 0x6e6966 });
-  const pineTrunkMat = new THREE.MeshToonMaterial({ color: 0x3d271d });
-  const pineFoliageMat1 = new THREE.MeshToonMaterial({ color: 0x1b3c26 });
-  const pineFoliageMat2 = new THREE.MeshToonMaterial({ color: 0x244d32 });
-  const waterMat = new THREE.MeshToonMaterial({
-    color: 0x1e3a45,
-    transparent: true,
-    opacity: 0.88
-  });
+  // High-Fidelity Procedural PBR Materials
+  const grassMat = getValleyGrassMat(18, 18);
+  const rockMat = getMountainRockMat(5, 12);
+  const snowMat = getMountainSnowMat(4, 4);
+  const viaductStoneMat = getCastleStoneMat(2, 6);
+  const pineTrunkMat = getPineTrunkMat();
+  const pineFoliageMat1 = getPineNeedleMat(1);
+  const pineFoliageMat2 = getPineNeedleMat(2);
+  const waterMat = getRealisticWaterMat();
 
   // === 1. CENTRAL VALLEY TERRAIN (Broad rolling ground) ===
   const terrainGeo = new THREE.PlaneGeometry(600, 600, 56, 56);
@@ -138,18 +144,56 @@ export function createDehradunMountains() {
   // === 3. RING OF DRAMATIC HIMALAYAN MOUNTAINS ===
   // Peaks surrounding the Dehradun Valley & Viaduct (omits Lucknow station)
   HIMALAYAN_MOUNTAINS.forEach((m, i) => {
-    // Mountain Cone (Rocky Base)
-    const mtnGeo = new THREE.ConeGeometry(m.radius, m.height, 9);
+    // Subdivided mountain cone for organic geological displacement
+    const mtnGeo = new THREE.ConeGeometry(m.radius, m.height, 28, 16);
+    const vPos = mtnGeo.attributes.position;
+
+    for (let v = 0; v < vPos.count; v++) {
+      let vx = vPos.getX(v);
+      let vy = vPos.getY(v);
+      let vz = vPos.getZ(v);
+
+      const heightRatio = (vy + m.height / 2) / m.height;
+      if (heightRatio > 0.04 && heightRatio < 0.96) {
+        const angle = Math.atan2(vz, vx);
+        // Multi-frequency craggy Himalayan ridges & ravines
+        const ridge = Math.sin(angle * 5 + i * 1.3) * 0.16 + Math.cos(angle * 9 + i * 2.1) * 0.08;
+        const cliff = Math.sin(vy * 0.1 + angle * 4) * 0.09;
+        const disp = 1.0 + (ridge + cliff) * (1.0 - heightRatio * 0.35);
+
+        vPos.setX(v, vx * disp);
+        vPos.setZ(v, vz * disp);
+        vPos.setY(v, vy + Math.sin(angle * 3 + i) * 3.5);
+      }
+    }
+    mtnGeo.computeVertexNormals();
+
     const mtn = new THREE.Mesh(mtnGeo, rockMat);
     mtn.position.set(m.x, m.height / 2 - 4, m.z);
     mtn.rotation.y = (i * 1.7) % Math.PI;
+    mtn.castShadow = true;
+    mtn.receiveShadow = true;
     landscapeGroup.add(mtn);
 
-    // Snow-dusted Himalayan Summit cap
-    const snowCapGeo = new THREE.ConeGeometry(m.radius * 0.38, m.height * 0.32, 9);
+    // Snow-dusted Himalayan Summit cap with matching crags
+    const snowCapGeo = new THREE.ConeGeometry(m.radius * 0.42, m.height * 0.35, 24, 10);
+    const sPos = snowCapGeo.attributes.position;
+    for (let v = 0; v < sPos.count; v++) {
+      let vx = sPos.getX(v);
+      let vy = sPos.getY(v);
+      let vz = sPos.getZ(v);
+      const angle = Math.atan2(vz, vx);
+      const disp = 1.0 + (Math.sin(angle * 5 + i * 1.3) * 0.12) + (Math.cos(angle * 8) * 0.06);
+      sPos.setX(v, vx * disp);
+      sPos.setZ(v, vz * disp);
+    }
+    snowCapGeo.computeVertexNormals();
+
     const snowCap = new THREE.Mesh(snowCapGeo, snowMat);
-    snowCap.position.set(m.x, m.height - (m.height * 0.16) - 4, m.z);
+    snowCap.position.set(m.x, m.height - (m.height * 0.17) - 4, m.z);
     snowCap.rotation.y = mtn.rotation.y;
+    snowCap.castShadow = true;
+    snowCap.receiveShadow = true;
     landscapeGroup.add(snowCap);
   });
 

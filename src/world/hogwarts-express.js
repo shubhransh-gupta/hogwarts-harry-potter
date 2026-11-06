@@ -2,20 +2,21 @@
 // Movie-accurate 4-6-0 crimson scarlet & black steam engine with brass fittings and animated steam puffs
 
 import * as THREE from 'three';
+import { getGildedBrassMat } from './materials-engine.js';
 
 export function createHogwartsExpress(isMovingInstance = false) {
   const trainGroup = new THREE.Group();
   trainGroup.name = isMovingInstance ? 'MovingHogwartsExpress' : 'StationHogwartsExpress';
 
-  // Materials (Cel-shaded Toon style)
-  const crimsonMat = new THREE.MeshToonMaterial({ color: 0x7a0c10 }); // Iconic deep scarlet
-  const blackMat = new THREE.MeshToonMaterial({ color: 0x18181a });
-  const darkGreyMat = new THREE.MeshToonMaterial({ color: 0x2d2d30 });
-  const brassMat = new THREE.MeshToonMaterial({ color: 0xd4af37 }); // Golden brass
-  const redBogieMat = new THREE.MeshToonMaterial({ color: 0x8a1418 });
-  const windowGlowMat = new THREE.MeshBasicMaterial({ color: 0xffe6a3 });
-  const wheelMat = new THREE.MeshToonMaterial({ color: 0x111113 });
-  const creamMat = new THREE.MeshToonMaterial({ color: 0xf5ebd0 });
+  // High-Fidelity Metallic & Brass PBR Materials
+  const crimsonMat = new THREE.MeshStandardMaterial({ color: 0x8a1015, metalness: 0.55, roughness: 0.32 });
+  const blackMat = new THREE.MeshStandardMaterial({ color: 0x141416, metalness: 0.45, roughness: 0.45 });
+  const darkGreyMat = new THREE.MeshStandardMaterial({ color: 0x242426, metalness: 0.4, roughness: 0.5 });
+  const brassMat = getGildedBrassMat();
+  const redBogieMat = new THREE.MeshStandardMaterial({ color: 0x700c10, metalness: 0.5, roughness: 0.4 });
+  const windowGlowMat = new THREE.MeshStandardMaterial({ color: 0xffe6a3, emissive: 0xffba38, emissiveIntensity: 0.9 });
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x161618, metalness: 0.75, roughness: 0.35 });
+  const creamMat = new THREE.MeshStandardMaterial({ color: 0xf5ebd0, roughness: 0.6 });
 
   // === 1. LOCOMOTIVE ENGINE (4-6-0) ===
   const engine = new THREE.Group();
