@@ -43,11 +43,25 @@ export class WandMagic {
     this.scene.add(this.wandFlashLight);
     this.wandFlashTimer = 0;
 
+    // Pooled Single Spell Projectile Light (Zero Shader Recompilation Stutter)
+    this.spellLight = new THREE.PointLight(0xffffff, 0, 24);
+    this.scene.add(this.spellLight);
+
     // Active projectiles, particles, and impact effects
     this.projectiles = [];
     this.levitatingObjects = [];
     this.particles = [];
     this.scorchMarks = [];
+    this.maxScorchMarks = 8;
+    this.scorchGeo = new THREE.CircleGeometry(1.4, 12);
+    this.scorchGeo.rotateX(-Math.PI / 2);
+    this.scorchMat = new THREE.MeshBasicMaterial({
+      color: 0x180b06,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false
+    });
+    this.colorTemp = new THREE.Color();
 
     // Camera shake intensity
     this.cameraShakeIntensity = 0;
@@ -252,20 +266,15 @@ export class WandMagic {
     auraMesh.position.y = 1.0;
     patronusGroup.add(auraMesh);
 
-    // Dynamic silver moonlight illumination
-    const stagLight = new THREE.PointLight(0xcceeff, 5.0, 32);
-    stagLight.position.y = 1.2;
-    patronusGroup.add(stagLight);
-
     this.scene.add(patronusGroup);
 
     this.projectiles.push({
       mesh: patronusGroup,
       velocity: forwardVec.clone().multiplyScalar(24).add(new THREE.Vector3(0, 3.5, 0)),
-      light: stagLight,
       color: 0xcceeff,
       life: 0,
       maxLife: 3.5,
+      trailTimer: 0,
       type: 'patronus'
     });
 
@@ -345,18 +354,15 @@ export class WandMagic {
     const corona = new THREE.Mesh(coronaGeo, coronaMat);
     fireGroup.add(corona);
 
-    const fireLight = new THREE.PointLight(0xff6600, 4.5, 18);
-    fireGroup.add(fireLight);
-
     this.scene.add(fireGroup);
 
     this.projectiles.push({
       mesh: fireGroup,
       velocity: forwardVec.clone().multiplyScalar(32),
-      light: fireLight,
       color: 0xff4500,
       life: 0,
       maxLife: 2.2,
+      trailTimer: 0,
       type: 'incendio'
     });
 
@@ -387,18 +393,15 @@ export class WandMagic {
     const stream = new THREE.Mesh(streamGeo, streamMat);
     waterGroup.add(stream);
 
-    const waterLight = new THREE.PointLight(0x40c4ff, 2.5, 12);
-    waterGroup.add(waterLight);
-
     this.scene.add(waterGroup);
 
     this.projectiles.push({
       mesh: waterGroup,
       velocity: forwardVec.clone().multiplyScalar(26).add(new THREE.Vector3(0, 1.5, 0)),
-      light: waterLight,
       color: 0x00bcd4,
       life: 0,
       maxLife: 1.6,
+      trailTimer: 0,
       type: 'aguamenti'
     });
 
@@ -426,18 +429,15 @@ export class WandMagic {
     const runeBar = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.95, 0.09), runeMat);
     keyholeGroup.add(runeBar);
 
-    const runeLight = new THREE.PointLight(0xffcc00, 3.0, 10);
-    keyholeGroup.add(runeLight);
-
     this.scene.add(keyholeGroup);
 
     this.projectiles.push({
       mesh: keyholeGroup,
       velocity: forwardVec.clone().multiplyScalar(5.5),
-      light: runeLight,
       color: 0xffd700,
       life: 0,
       maxLife: 1.4,
+      trailTimer: 0,
       type: 'alohomora'
     });
 
@@ -502,19 +502,15 @@ export class WandMagic {
     const corona = new THREE.Mesh(coronaGeo, coronaMat);
     curseGroup.add(corona);
 
-    // Searing emerald point light
-    const curseLight = new THREE.PointLight(0x00ff44, 8.0, 28);
-    curseGroup.add(curseLight);
-
     this.scene.add(curseGroup);
 
     this.projectiles.push({
       mesh: curseGroup,
       velocity: forwardVec.clone().multiplyScalar(38),
-      light: curseLight,
       color: 0x00ff44,
       life: 0,
       maxLife: 2.2,
+      trailTimer: 0,
       type: 'avadakedavra'
     });
 
@@ -537,18 +533,15 @@ export class WandMagic {
     const core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
     disarmGroup.add(core);
 
-    const redLight = new THREE.PointLight(0xff1122, 4.5, 16);
-    disarmGroup.add(redLight);
-
     this.scene.add(disarmGroup);
 
     this.projectiles.push({
       mesh: disarmGroup,
       velocity: forwardVec.clone().multiplyScalar(30),
-      light: redLight,
       color: 0xff1122,
       life: 0,
       maxLife: 2.0,
+      trailTimer: 0,
       type: 'expelliarmus'
     });
 
@@ -574,18 +567,15 @@ export class WandMagic {
     );
     slashGroup.add(blade);
 
-    const bladeLight = new THREE.PointLight(0xd8e6f0, 3.5, 14);
-    slashGroup.add(bladeLight);
-
     this.scene.add(slashGroup);
 
     this.projectiles.push({
       mesh: slashGroup,
       velocity: forwardVec.clone().multiplyScalar(32),
-      light: bladeLight,
       color: 0xd8e6f0,
       life: 0,
       maxLife: 1.8,
+      trailTimer: 0,
       type: 'sectumsempra'
     });
 
@@ -596,48 +586,48 @@ export class WandMagic {
     };
   }
 
-  // Particle Utilities
-  addParticle(pos, vel, colorHex, maxLife = 1.0) {
+  // Particle Utilities with Zero-Allocation Object Pooling
+  addParticleRaw(x, y, z, vx, vy, vz, colorHex, maxLife = 1.0) {
+    this.colorTemp.setHex(colorHex);
     if (this.particleData.length >= this.maxParticles) {
-      this.particleData.shift();
+      const idx = (this.particleHeadIndex || 0) % this.maxParticles;
+      this.particleHeadIndex = idx + 1;
+      const pt = this.particleData[idx];
+      pt.x = x; pt.y = y; pt.z = z;
+      pt.vx = vx; pt.vy = vy; pt.vz = vz;
+      pt.r = this.colorTemp.r; pt.g = this.colorTemp.g; pt.b = this.colorTemp.b;
+      pt.life = 0; pt.maxLife = maxLife;
+      return;
     }
-    const color = new THREE.Color(colorHex);
     this.particleData.push({
-      x: pos.x,
-      y: pos.y,
-      z: pos.z,
-      vx: vel.x,
-      vy: vel.y,
-      vz: vel.z,
-      r: color.r,
-      g: color.g,
-      b: color.b,
-      life: 0,
-      maxLife
+      x, y, z, vx, vy, vz,
+      r: this.colorTemp.r, g: this.colorTemp.g, b: this.colorTemp.b,
+      life: 0, maxLife
     });
   }
 
+  addParticle(pos, vel, colorHex, maxLife = 1.0) {
+    this.addParticleRaw(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, colorHex, maxLife);
+  }
+
   spawnParticleBurst(pos, colorHex, count = 16, speed = 3.5) {
+    const px = pos.x, py = pos.y, pz = pos.z;
     for (let i = 0; i < count; i++) {
-      const vel = new THREE.Vector3(
-        (Math.random() - 0.5) * speed * 2,
-        Math.random() * speed * 1.5,
-        (Math.random() - 0.5) * speed * 2
-      );
-      this.addParticle(pos, vel, colorHex, 0.6 + Math.random() * 0.8);
+      const vx = (Math.random() - 0.5) * speed * 2;
+      const vy = Math.random() * speed * 1.5;
+      const vz = (Math.random() - 0.5) * speed * 2;
+      this.addParticleRaw(px, py, pz, vx, vy, vz, colorHex, 0.45 + Math.random() * 0.65);
     }
   }
 
   createGroundScorch(pos) {
-    const scorchGeo = new THREE.CircleGeometry(1.4, 16);
-    scorchGeo.rotateX(-Math.PI / 2);
-    const scorchMat = new THREE.MeshBasicMaterial({
-      color: 0x180b06,
-      transparent: true,
-      opacity: 0.75,
-      depthWrite: false
-    });
-    const scorch = new THREE.Mesh(scorchGeo, scorchMat);
+    if (this.scorchMarks.length >= this.maxScorchMarks) {
+      const oldest = this.scorchMarks.shift();
+      this.scene.remove(oldest.mesh);
+      if (oldest.mesh.material) oldest.mesh.material.dispose();
+    }
+    const scorchMat = this.scorchMat.clone();
+    const scorch = new THREE.Mesh(this.scorchGeo, scorchMat);
     scorch.position.set(pos.x, pos.y + 0.04, pos.z);
     this.scene.add(scorch);
 
@@ -665,6 +655,16 @@ export class WandMagic {
       this.cameraShakeIntensity = Math.max(0, this.cameraShakeIntensity - delta * 0.4);
     }
 
+    // 1b. Update pooled single spell light to track active leading projectile
+    if (this.projectiles.length > 0) {
+      const lead = this.projectiles[this.projectiles.length - 1];
+      this.spellLight.position.copy(lead.mesh.position);
+      this.spellLight.color.setHex(lead.color || 0xffffff);
+      this.spellLight.intensity = lead.type === 'avadakedavra' ? 7.0 : 4.5;
+    } else {
+      this.spellLight.intensity = 0;
+    }
+
     // 2. Update active projectiles & spawn trailing sparks
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
@@ -677,23 +677,27 @@ export class WandMagic {
 
       p.mesh.position.addScaledVector(p.velocity, delta);
 
-      // Trailing sparks along projectile flight
-      if (p.type === 'incendio') {
-        this.spawnParticleBurst(p.mesh.position, 0xff7700, 3, 1.2);
-      } else if (p.type === 'patronus') {
-        p.mesh.rotation.y = Math.atan2(p.velocity.x, p.velocity.z);
-        p.mesh.position.y += Math.sin(p.life * 5) * 0.06;
-        this.spawnParticleBurst(p.mesh.position, 0xcceeff, 2, 0.8);
-      } else if (p.type === 'aguamenti') {
-        this.spawnParticleBurst(p.mesh.position, 0x55ddff, 2, 0.6);
-      } else if (p.type === 'avadakedavra') {
-        this.spawnParticleBurst(p.mesh.position, 0x00ff44, 4, 1.8);
-      } else if (p.type === 'expelliarmus') {
-        this.spawnParticleBurst(p.mesh.position, 0xff2222, 3, 1.4);
-      } else if (p.type === 'sectumsempra') {
-        this.spawnParticleBurst(p.mesh.position, 0xd8e6f0, 2, 1.2);
-      } else if (p.type === 'alohomora') {
-        p.mesh.rotation.z += delta * 7;
+      // Trailing sparks along projectile flight (throttled to ~22Hz to eliminate frame drops)
+      p.trailTimer = (p.trailTimer || 0) + delta;
+      if (p.trailTimer >= 0.045) {
+        p.trailTimer = 0;
+        if (p.type === 'incendio') {
+          this.spawnParticleBurst(p.mesh.position, 0xff7700, 2, 1.2);
+        } else if (p.type === 'patronus') {
+          p.mesh.rotation.y = Math.atan2(p.velocity.x, p.velocity.z);
+          p.mesh.position.y += Math.sin(p.life * 5) * 0.06;
+          this.spawnParticleBurst(p.mesh.position, 0xcceeff, 2, 0.8);
+        } else if (p.type === 'aguamenti') {
+          this.spawnParticleBurst(p.mesh.position, 0x55ddff, 2, 0.6);
+        } else if (p.type === 'avadakedavra') {
+          this.spawnParticleBurst(p.mesh.position, 0x00ff44, 3, 1.8);
+        } else if (p.type === 'expelliarmus') {
+          this.spawnParticleBurst(p.mesh.position, 0xff2222, 2, 1.4);
+        } else if (p.type === 'sectumsempra') {
+          this.spawnParticleBurst(p.mesh.position, 0xd8e6f0, 2, 1.2);
+        } else if (p.type === 'alohomora') {
+          p.mesh.rotation.z += delta * 7;
+        }
       }
 
       // Mid-air Horcrux / Boss collision detection
@@ -755,7 +759,8 @@ export class WandMagic {
       pt.life += delta;
 
       if (pt.life >= pt.maxLife) {
-        this.particleData.splice(i, 1);
+        this.particleData[i] = this.particleData[this.particleData.length - 1];
+        this.particleData.pop();
         continue;
       }
 

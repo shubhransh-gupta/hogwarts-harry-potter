@@ -158,10 +158,46 @@
     <div id="hint">WASD walk · Shift run · Space jump · Left-Click wand cast · 1-9 spawn · Q-J spells · E interact · V camera · T time · K weather · Esc menu</div>
   </div>
 
-  <!-- Mobile Touch Controls -->
+  <!-- Mobile Landscape Virtual Controls -->
   <div id="touch-controls">
-    <button id="btn-touch-cast" class="touch-btn">CAST 🪄</button>
-    <button id="btn-touch-jump" class="touch-btn">TALK 💬</button>
+    <!-- Left: Virtual Movement Joystick -->
+    <div id="joystick-zone">
+      <div id="joystick-base">
+        <div id="joystick-thumb"></div>
+      </div>
+    </div>
+
+    <!-- Right: Quick Action Buttons -->
+    <div id="touch-actions">
+      <button id="btn-touch-cast" class="touch-btn action-cast" aria-label="Cast Wand Spell" title="Cast Spell">
+        <span class="tb-icon">🪄</span>
+        <span class="tb-label">CAST</span>
+      </button>
+      <div class="touch-actions-cluster">
+        <button id="btn-touch-interact" class="touch-btn action-interact" aria-label="Interact [E]" title="Interact [E]">
+          <span class="tb-icon">⚔️</span>
+          <span class="tb-label">ACT</span>
+        </button>
+        <button id="btn-touch-jump" class="touch-btn action-jump" aria-label="Jump / Swim" title="Jump">
+          <span class="tb-icon">🦘</span>
+          <span class="tb-label">JUMP</span>
+        </button>
+        <button id="btn-touch-sprint" class="touch-btn action-sprint" aria-label="Toggle Sprint" title="Sprint">
+          <span class="tb-icon">⚡</span>
+          <span class="tb-label">RUN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Rotate Screen Overlay (shown in portrait) -->
+    <div id="rotate-hint" class="rotate-hint" hidden>
+      <div class="rotate-box">
+        <span class="rotate-icon">📱 ➔ 🔄</span>
+        <h3 class="rh-title">हॉगवॉर्ट्स लैंडस्केप मोड</h3>
+        <p class="rh-desc">Rotate your phone horizontally to explore Hogwarts in full widescreen landscape!</p>
+        <button id="btn-dismiss-rotate" class="rotate-dismiss-btn">Play Anyway (सीधे खेलें)</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./src/main.js"></script>

@@ -54,6 +54,7 @@ class HogwartsGame {
     this.previousMousePosition = { x: 0, y: 0 };
 
     this.initControls();
+    this.initMobileTouchControls();
     this.initWindowResize();
     this.initStoryTriggers();
 
@@ -252,13 +253,158 @@ class HogwartsGame {
       }
     });
 
-    // Mobile touch controls
+    // Note: Touch controls initialized in initMobileTouchControls()
+  }
+
+  initMobileTouchControls() {
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const touchControls = document.getElementById('touch-controls');
+    if (touchControls && isTouch) {
+      touchControls.style.display = 'block';
+    }
+
+    // 1. Virtual Movement Joystick
+    const joystickZone = document.getElementById('joystick-zone');
+    const joystickBase = document.getElementById('joystick-base');
+    const joystickThumb = document.getElementById('joystick-thumb');
+    let joystickTouchId = null;
+    let baseRect = null;
+    const maxRadius = 42;
+
+    if (joystickZone && joystickBase && joystickThumb) {
+      const handleJoyStart = (e) => {
+        const homeEl = document.getElementById('home');
+        if (homeEl && !homeEl.hidden) return;
+        soundSynth.resume();
+
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          if (joystickTouchId === null) {
+            joystickTouchId = t.identifier;
+            baseRect = joystickBase.getBoundingClientRect();
+            handleJoyMove(e);
+            break;
+          }
+        }
+      };
+
+      const handleJoyMove = (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.touches.length; i++) {
+          const t = e.touches[i];
+          if (t.identifier === joystickTouchId) {
+            if (!baseRect) baseRect = joystickBase.getBoundingClientRect();
+            const centerX = baseRect.left + baseRect.width / 2;
+            const centerY = baseRect.top + baseRect.height / 2;
+            const dx = t.clientX - centerX;
+            const dy = t.clientY - centerY;
+            const dist = Math.hypot(dx, dy);
+            const clampedDist = Math.min(dist, maxRadius);
+            const angle = Math.atan2(dy, dx);
+
+            const tx = Math.cos(angle) * clampedDist;
+            const ty = Math.sin(angle) * clampedDist;
+            joystickThumb.style.transform = `translate(${tx}px, ${ty}px)`;
+
+            const normX = tx / maxRadius;
+            const normY = ty / maxRadius;
+            const thresh = 0.22;
+            this.player.keys.forward = normY < -thresh;
+            this.player.keys.backward = normY > thresh;
+            this.player.keys.left = normX < -thresh;
+            this.player.keys.right = normX > thresh;
+            break;
+          }
+        }
+      };
+
+      const handleJoyEnd = (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            joystickTouchId = null;
+            joystickThumb.style.transform = 'translate(0px, 0px)';
+            this.player.keys.forward = false;
+            this.player.keys.backward = false;
+            this.player.keys.left = false;
+            this.player.keys.right = false;
+            break;
+          }
+        }
+      };
+
+      joystickZone.addEventListener('touchstart', handleJoyStart, { passive: false });
+      window.addEventListener('touchmove', handleJoyMove, { passive: false });
+      window.addEventListener('touchend', handleJoyEnd, { passive: false });
+      window.addEventListener('touchcancel', handleJoyEnd, { passive: false });
+    }
+
+    // 2. Camera Drag on Right-Half of Canvas
+    let cameraTouchId = null;
+    let prevCamX = 0;
+    let prevCamY = 0;
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      const homeEl = document.getElementById('home');
+      if (homeEl && !homeEl.hidden) return;
+
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.clientX > window.innerWidth * 0.35 && cameraTouchId === null) {
+          cameraTouchId = t.identifier;
+          prevCamX = t.clientX;
+          prevCamY = t.clientY;
+          break;
+        }
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (cameraTouchId === null) return;
+      for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i];
+        if (t.identifier === cameraTouchId) {
+          const dx = t.clientX - prevCamX;
+          const dy = t.clientY - prevCamY;
+          this.player.cameraYaw -= dx * 0.0055;
+          this.player.cameraPitch = Math.max(-0.35, Math.min(0.82, this.player.cameraPitch + dy * 0.0045));
+          prevCamX = t.clientX;
+          prevCamY = t.clientY;
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const handleCamEnd = (e) => {
+      if (cameraTouchId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === cameraTouchId) {
+          cameraTouchId = null;
+          break;
+        }
+      }
+    };
+    window.addEventListener('touchend', handleCamEnd);
+    window.addEventListener('touchcancel', handleCamEnd);
+
+    // 3. Action Buttons
     const btnCast = document.getElementById('btn-touch-cast');
     if (btnCast) {
       btnCast.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         soundSynth.resume();
         this.castActiveWandSpell();
+      });
+    }
+
+    const btnInteract = document.getElementById('btn-touch-interact');
+    if (btnInteract) {
+      btnInteract.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        soundSynth.resume();
+        this.interactProximity();
       });
     }
 
@@ -266,30 +412,47 @@ class HogwartsGame {
     if (btnJump) {
       btnJump.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        this.interactProximity();
+        e.stopPropagation();
+        this.player.jump();
       });
     }
 
-    // Touch swipe for camera look
-    let touchStartX = 0;
-    let touchStartY = 0;
-    this.canvas.addEventListener('touchstart', (e) => {
-      if (e.touches.length > 0) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-      }
-    });
+    const btnSprint = document.getElementById('btn-touch-sprint');
+    if (btnSprint) {
+      btnSprint.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.player.keys.sprint = !this.player.keys.sprint;
+        btnSprint.classList.toggle('active', this.player.keys.sprint);
+      });
+    }
 
-    this.canvas.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        const deltaX = e.touches[0].clientX - touchStartX;
-        const deltaY = e.touches[0].clientY - touchStartY;
-        this.player.cameraYaw -= deltaX * 0.005;
-        this.player.cameraPitch = Math.max(-0.35, Math.min(0.82, this.player.cameraPitch + deltaY * 0.004));
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
+    // 4. Portrait vs Landscape Orientation Check
+    const rotateHint = document.getElementById('rotate-hint');
+    const btnDismissRotate = document.getElementById('btn-dismiss-rotate');
+    if (btnDismissRotate && rotateHint) {
+      btnDismissRotate.addEventListener('click', () => {
+        rotateHint.hidden = true;
+      });
+    }
+
+    const checkOrientation = () => {
+      const isMobile = window.innerWidth <= 950 || isTouch;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (rotateHint) {
+        if (isMobile && isPortrait) {
+          rotateHint.hidden = false;
+        } else {
+          rotateHint.hidden = true;
+        }
       }
+    };
+
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(checkOrientation, 300);
     });
+    checkOrientation();
   }
 
   initStoryTriggers() {
