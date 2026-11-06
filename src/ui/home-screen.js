@@ -448,6 +448,10 @@ export class HomeScreen {
         </div>
 
         <div class="hw-nav-actions">
+          <button id="hw-btn-fullscreen" class="hw-ghost-btn" aria-label="Toggle Fullscreen">
+            <span class="btn-icon">⛶</span>
+            <span class="btn-label">Fullscreen</span>
+          </button>
           <button id="hw-btn-sound" class="hw-ghost-btn" aria-label="Toggle Sound (Key M)">
             <span class="btn-icon">🎵</span>
             <span class="btn-label">Hedwig's Theme</span>
@@ -701,6 +705,21 @@ export class HomeScreen {
       soundBtn.addEventListener('click', () => {
         const musicPlayBtn = document.getElementById('music-play-btn');
         if (musicPlayBtn) musicPlayBtn.click();
+      });
+    }
+
+    // Fullscreen toggle from Nav
+    const fsBtn = document.getElementById('hw-btn-fullscreen');
+    if (fsBtn) {
+      fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          const docEl = document.documentElement;
+          if (docEl.requestFullscreen) docEl.requestFullscreen();
+          else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
       });
     }
 

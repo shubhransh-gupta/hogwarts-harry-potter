@@ -60,6 +60,7 @@ export class HUDController {
     this.initMusicControls();
     this.initSpellBar();
     this.initGameDisclaimer();
+    this.initFullscreen();
     this.updateSpellDisplay();
   }
 
@@ -397,7 +398,75 @@ export class HUDController {
     });
   }
 
-  // 8. Coordinates & Elevation HUD ticker removed as requested
+  // 8. Fullscreen Mode Integration
+  initFullscreen() {
+    const toggleFS = () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(err => console.warn('FS request error:', err));
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(err => console.warn('FS exit error:', err));
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    };
+
+    const updateFSUI = () => {
+      const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+      const hudFsBtn = document.getElementById('btn-hud-fullscreen');
+      if (hudFsBtn) {
+        const icon = hudFsBtn.querySelector('.fs-icon');
+        const text = hudFsBtn.querySelector('.fs-text');
+        if (icon) icon.textContent = isFS ? '🗗' : '⛶';
+        if (text) text.textContent = isFS ? 'Exit Fullscreen' : 'Fullscreen';
+      }
+
+      const pauseFsBtn = document.getElementById('pause-fullscreen');
+      if (pauseFsBtn) {
+        pauseFsBtn.innerHTML = isFS
+          ? '<span class="pfs-icon">🗗</span> Exit Fullscreen (फुलस्क्रीन से बाहर)'
+          : '<span class="pfs-icon">⛶</span> Fullscreen Mode (फुलस्क्रीन)';
+      }
+
+      const homeFsBtn = document.getElementById('hw-btn-fullscreen');
+      if (homeFsBtn) {
+        const label = homeFsBtn.querySelector('.btn-label');
+        const icon = homeFsBtn.querySelector('.btn-icon');
+        if (label) label.textContent = isFS ? 'Exit Fullscreen' : 'Fullscreen';
+        if (icon) icon.textContent = isFS ? '🗗' : '⛶';
+      }
+
+      window.dispatchEvent(new Event('resize'));
+    };
+
+    const hudFsBtn = document.getElementById('btn-hud-fullscreen');
+    if (hudFsBtn) {
+      hudFsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFS();
+      });
+    }
+
+    const pauseFsBtn = document.getElementById('pause-fullscreen');
+    if (pauseFsBtn) {
+      pauseFsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFS();
+      });
+    }
+
+    document.addEventListener('fullscreenchange', updateFSUI);
+    document.addEventListener('webkitfullscreenchange', updateFSUI);
+  }
+
+  // 9. Coordinates & Elevation HUD ticker removed as requested
   updateCoords() {
     // Intentionally removed as per user requirement
   }

@@ -113,13 +113,14 @@ export class HorcruxQuestManager {
       duelHud.id = 'horcrux-duel-hud';
       duelHud.className = 'horcrux-duel-hud';
       duelHud.hidden = true;
+      duelHud.style.display = 'none';
       duelHud.innerHTML = `
         <div class="hd-badge">⚔️ DARK HORCRUX CONFRONTATION</div>
         <div class="hd-name" id="hd-name">Tom Riddle’s Diary</div>
         <div class="hd-hp-track">
           <div class="hd-hp-fill" id="hd-hp-fill" style="width: 100%;"></div>
         </div>
-        <div class="hd-status" id="hd-status">HP: 3 / 3 · Strike with Wand Spells [Left-Click / Q-Z] or Press [E]!</div>
+        <div class="hd-status" id="hd-status">HP: 3 / 3 · Strike with Spells [Left-Click] or [E]!</div>
       `;
       document.body.appendChild(duelHud);
     }
@@ -606,24 +607,26 @@ export class HorcruxQuestManager {
       }
     });
 
-    // Update Dark Duel HUD
-    if (nearbyDuelHorcrux) {
+    // Update Dark Duel HUD (Docked on Top-Right, completely clear of center view)
+    if (nearbyDuelHorcrux && !nearbyDuelHorcrux.isDestroyed && nearbyDuelHorcrux.hp > 0) {
       this.activeDuelHorcrux = nearbyDuelHorcrux;
       if (this.duelHudEl) {
         this.duelHudEl.hidden = false;
+        this.duelHudEl.style.display = 'flex';
         const nameEl = document.getElementById('hd-name');
         const fillEl = document.getElementById('hd-hp-fill');
         const statusEl = document.getElementById('hd-status');
         if (nameEl) nameEl.textContent = nearbyDuelHorcrux.name;
         if (fillEl) fillEl.style.width = `${Math.max(0, (nearbyDuelHorcrux.hp / nearbyDuelHorcrux.maxHp) * 100)}%`;
         if (statusEl) {
-          statusEl.textContent = `HP: ${nearbyDuelHorcrux.hp} / ${nearbyDuelHorcrux.maxHp} · Cast Wand Spells [Left-Click / Q-Z] or Press [E]!`;
+          statusEl.textContent = `HP: ${nearbyDuelHorcrux.hp} / ${nearbyDuelHorcrux.maxHp} · Spells [Left-Click] or [E]!`;
         }
       }
     } else {
-      if (this.activeDuelHorcrux) {
-        this.activeDuelHorcrux = null;
-        if (this.duelHudEl) this.duelHudEl.hidden = true;
+      this.activeDuelHorcrux = null;
+      if (this.duelHudEl) {
+        this.duelHudEl.hidden = true;
+        this.duelHudEl.style.display = 'none';
       }
     }
 
@@ -750,22 +753,26 @@ export class HorcruxQuestManager {
     // Dark soul damage sparks
     this.createDarkSoulBurst(horcrux.pos, 16);
 
-    // Update Duel HUD
-    if (this.duelHudEl) {
-      this.duelHudEl.hidden = false;
-      const nameEl = document.getElementById('hd-name');
-      const fillEl = document.getElementById('hd-hp-fill');
-      const statusEl = document.getElementById('hd-status');
-      if (nameEl) nameEl.textContent = horcrux.name;
-      if (fillEl) fillEl.style.width = `${Math.max(0, (horcrux.hp / horcrux.maxHp) * 100)}%`;
-      if (statusEl) {
-        statusEl.textContent = `HP: ${Math.max(0, horcrux.hp)} / ${horcrux.maxHp} · Cast Wand Spells [Left-Click / Q-Z] or Press [E]!`;
-      }
-    }
-
     if (horcrux.hp <= 0) {
+      if (this.duelHudEl) {
+        this.duelHudEl.hidden = true;
+        this.duelHudEl.style.display = 'none';
+      }
       this.destroyHorcrux(horcrux, spellId, wandMagic);
     } else {
+      // Update Duel HUD
+      if (this.duelHudEl) {
+        this.duelHudEl.hidden = false;
+        this.duelHudEl.style.display = 'flex';
+        const nameEl = document.getElementById('hd-name');
+        const fillEl = document.getElementById('hd-hp-fill');
+        const statusEl = document.getElementById('hd-status');
+        if (nameEl) nameEl.textContent = horcrux.name;
+        if (fillEl) fillEl.style.width = `${Math.max(0, (horcrux.hp / horcrux.maxHp) * 100)}%`;
+        if (statusEl) {
+          statusEl.textContent = `HP: ${horcrux.hp} / ${horcrux.maxHp} · Spells [Left-Click] or [E]!`;
+        }
+      }
       this.dialogManager.showToast(
         `हॉरक्रक्स पर प्रहार!`,
         `⚔️ ${horcrux.name} struck! HP: ${horcrux.hp}/${horcrux.maxHp}`,
@@ -778,14 +785,17 @@ export class HorcruxQuestManager {
     horcrux.isDestroyed = true;
     this.horcruxesDestroyed++;
 
+    // Hide duel HUD immediately
+    this.activeDuelHorcrux = null;
+    if (this.duelHudEl) {
+      this.duelHudEl.hidden = true;
+      this.duelHudEl.style.display = 'none';
+    }
+
     soundSynth.playHorcruxDestroyed();
     soundSynth.playVoldemortVision();
     this.createDarkSoulBurst(horcrux.pos, 55);
     this.scene.remove(horcrux.mesh);
-
-    // Hide duel HUD
-    if (this.duelHudEl) this.duelHudEl.hidden = true;
-    this.activeDuelHorcrux = null;
 
     const pip = document.getElementById(`pip-${horcrux.id}`);
     const item = document.getElementById(`item-${horcrux.id}`);

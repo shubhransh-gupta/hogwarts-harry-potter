@@ -74,6 +74,7 @@
     <div class="pause-inner" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <p id="pause-title" class="pause-title">Paused</p>
       <button id="resume">Keep walking</button>
+      <button id="pause-fullscreen" class="pause-fs-btn"><span class="pfs-icon">⛶</span> Fullscreen Mode (फुलस्क्रीन)</button>
       <button id="pause-story-plot" class="pause-story-btn">📜 The 7 Horcruxes Plot & Prophecy (कथा)</button>
 
       <p class="pause-label">Spawn to a place in this realm</p>
@@ -132,6 +133,10 @@
         <div id="places-list" class="places-list"></div>
       </div>
       <button id="btn-hud-story" class="hud-story-btn" title="View Horcrux Story Plot">📜 Story Plot</button>
+      <button id="btn-hud-fullscreen" class="hud-fullscreen-btn" title="Toggle Fullscreen (Key F11)" aria-label="Toggle Fullscreen">
+        <span class="fs-icon">⛶</span>
+        <span class="fs-text">Fullscreen</span>
+      </button>
     </div>
 
     <!-- Top Right: Floating Music Card -->
