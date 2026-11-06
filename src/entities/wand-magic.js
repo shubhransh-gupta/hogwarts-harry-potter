@@ -13,17 +13,21 @@ export class WandMagic {
     this.worldManager = worldManager;
 
     this.spells = [
-      { id: 'lumos', name: 'Lumos', key: '1', keyAlt: 'Q', color: '#88d8ff', desc: 'Illuminating Wand Light' },
-      { id: 'patronus', name: 'Expecto Patronum', key: '2', keyAlt: 'E', color: '#d8f4ff', desc: 'Silver Stag Guardian' },
-      { id: 'leviosa', name: 'Wingardium Leviosa', key: '3', keyAlt: 'R', color: '#ffd54f', desc: 'Levitation Enchantment' },
-      { id: 'incendio', name: 'Incendio', key: '4', keyAlt: 'F', color: '#ff5722', desc: 'Crackling Fire Burst' },
-      { id: 'aguamenti', name: 'Aguamenti', key: '5', keyAlt: 'C', color: '#00bcd4', desc: 'Pure Spring Water Jet' },
-      { id: 'alohomora', name: 'Alohomora', key: '6', keyAlt: 'X', color: '#ffb300', desc: 'Unlocking Charm' },
-      { id: 'accio', name: 'Accio', key: '7', keyAlt: 'Z', color: '#ab47bc', desc: 'Summoning Charm' }
+      { id: 'lumos', name: 'Lumos', key: '1', keyAlt: 'Q', color: '#88d8ff', desc: 'Illuminating Wand Light', unlocked: true },
+      { id: 'patronus', name: 'Expecto Patronum', key: '2', keyAlt: 'E', color: '#d8f4ff', desc: 'Silver Stag Guardian', unlocked: true },
+      { id: 'leviosa', name: 'Wingardium Leviosa', key: '3', keyAlt: 'R', color: '#ffd54f', desc: 'Levitation Enchantment', unlocked: true },
+      { id: 'incendio', name: 'Incendio', key: '4', keyAlt: 'F', color: '#ff5722', desc: 'Crackling Fire Burst', unlocked: true },
+      { id: 'aguamenti', name: 'Aguamenti', key: '5', keyAlt: 'C', color: '#00bcd4', desc: 'Pure Spring Water Jet', unlocked: true },
+      { id: 'alohomora', name: 'Alohomora', key: '6', keyAlt: 'X', color: '#ffb300', desc: 'Unlocking Charm', unlocked: true },
+      { id: 'accio', name: 'Accio', key: '7', keyAlt: 'Z', color: '#ab47bc', desc: 'Summoning Charm', unlocked: true },
+      { id: 'avadakedavra', name: 'Avada Kedavra', key: '8', keyAlt: 'G', color: '#00ff44', desc: 'The Killing Curse (Emerald Obliteration)', unlocked: false },
+      { id: 'expelliarmus', name: 'Expelliarmus', key: '9', keyAlt: 'H', color: '#ff2222', desc: 'Disarming Charm (Crimson Stun)', unlocked: false },
+      { id: 'sectumsempra', name: 'Sectumsempra', key: '0', keyAlt: 'J', color: '#d8e6f0', desc: 'Dark Slashing Curse (Silver Crescent)', unlocked: false }
     ];
 
     this.activeSpellIndex = 0;
     this.isLumosActive = false;
+    this.horcruxManager = null;
 
     // Lumos Wand Tip Light & Radial Glow Halo
     this.lumosLight = new THREE.PointLight(0xb0e8ff, 0, 18);
@@ -75,13 +79,27 @@ export class WandMagic {
     this.worldManager = wm;
   }
 
+  setHorcruxManager(hm) {
+    this.horcruxManager = hm;
+  }
+
+  unlockSpell(spellId) {
+    const s = this.spells.find(sp => sp.id === spellId);
+    if (s) {
+      s.unlocked = true;
+    }
+  }
+
   getActiveSpell() {
     return this.spells[this.activeSpellIndex];
   }
 
   selectSpell(index) {
     if (index >= 0 && index < this.spells.length) {
-      this.activeSpellIndex = index;
+      const target = this.spells[index];
+      if (target.unlocked) {
+        this.activeSpellIndex = index;
+      }
     }
   }
 
@@ -137,6 +155,12 @@ export class WandMagic {
         return this.castAlohomora(wandPos, forwardVec);
       case 'accio':
         return this.castAccio(wandPos, forwardVec);
+      case 'avadakedavra':
+        return this.castAvadaKedavra(wandPos, forwardVec);
+      case 'expelliarmus':
+        return this.castExpelliarmus(wandPos, forwardVec);
+      case 'sectumsempra':
+        return this.castSectumsempra(wandPos, forwardVec);
       default:
         return null;
     }
@@ -457,6 +481,121 @@ export class WandMagic {
     });
   }
 
+  // 8. AVADA KEDAVRA (The Killing Curse - Emerald Lightning of Total Obliteration)
+  castAvadaKedavra(wandPos, forwardVec) {
+    soundSynth.playSpellAvadaKedavra();
+    this.triggerWandCastFlash(0x00ff44);
+    this.cameraShakeIntensity = 0.35;
+
+    const curseGroup = new THREE.Group();
+    curseGroup.position.copy(wandPos);
+
+    // Blinding emerald plasma core
+    const boltGeo = new THREE.CylinderGeometry(0.12, 0.28, 3.8, 8);
+    boltGeo.rotateX(Math.PI / 2);
+    const boltMat = new THREE.MeshBasicMaterial({ color: 0x00ff44 });
+    const bolt = new THREE.Mesh(boltGeo, boltMat);
+    curseGroup.add(bolt);
+
+    const coronaGeo = new THREE.SphereGeometry(0.7, 10, 8);
+    const coronaMat = new THREE.MeshBasicMaterial({ color: 0x33ff77, transparent: true, opacity: 0.85 });
+    const corona = new THREE.Mesh(coronaGeo, coronaMat);
+    curseGroup.add(corona);
+
+    // Searing emerald point light
+    const curseLight = new THREE.PointLight(0x00ff44, 8.0, 28);
+    curseGroup.add(curseLight);
+
+    this.scene.add(curseGroup);
+
+    this.projectiles.push({
+      mesh: curseGroup,
+      velocity: forwardVec.clone().multiplyScalar(38),
+      light: curseLight,
+      color: 0x00ff44,
+      life: 0,
+      maxLife: 2.2,
+      type: 'avadakedavra'
+    });
+
+    return {
+      spell: 'Avada Kedavra!',
+      color: '#00ff44',
+      message: 'A deafening roar of blinding emerald lightning surges from your wand!'
+    };
+  }
+
+  // 9. EXPELLIARMUS (Disarming Red Charm)
+  castExpelliarmus(wandPos, forwardVec) {
+    soundSynth.playSpellIncendio();
+    this.triggerWandCastFlash(0xff1122);
+    this.cameraShakeIntensity = 0.08;
+
+    const disarmGroup = new THREE.Group();
+    disarmGroup.position.copy(wandPos);
+
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
+    disarmGroup.add(core);
+
+    const redLight = new THREE.PointLight(0xff1122, 4.5, 16);
+    disarmGroup.add(redLight);
+
+    this.scene.add(disarmGroup);
+
+    this.projectiles.push({
+      mesh: disarmGroup,
+      velocity: forwardVec.clone().multiplyScalar(30),
+      light: redLight,
+      color: 0xff1122,
+      life: 0,
+      maxLife: 2.0,
+      type: 'expelliarmus'
+    });
+
+    return {
+      spell: 'Expelliarmus!',
+      color: '#ff2222',
+      message: 'A concentrated scarlet disarming jet streaks forward!'
+    };
+  }
+
+  // 10. SECTUMSEMPRA (Dark Slashing Curse)
+  castSectumsempra(wandPos, forwardVec) {
+    soundSynth.playSpellPatronus();
+    this.triggerWandCastFlash(0xd8e6f0);
+
+    const slashGroup = new THREE.Group();
+    slashGroup.position.copy(wandPos);
+
+    // Silver crescent blade
+    const blade = new THREE.Mesh(
+      new THREE.TorusGeometry(0.8, 0.05, 4, 16, Math.PI / 1.5),
+      new THREE.MeshBasicMaterial({ color: 0xeef4fa })
+    );
+    slashGroup.add(blade);
+
+    const bladeLight = new THREE.PointLight(0xd8e6f0, 3.5, 14);
+    slashGroup.add(bladeLight);
+
+    this.scene.add(slashGroup);
+
+    this.projectiles.push({
+      mesh: slashGroup,
+      velocity: forwardVec.clone().multiplyScalar(32),
+      light: bladeLight,
+      color: 0xd8e6f0,
+      life: 0,
+      maxLife: 1.8,
+      type: 'sectumsempra'
+    });
+
+    return {
+      spell: 'Sectumsempra!',
+      color: '#d8e6f0',
+      message: 'Razor-sharp invisible silver blades slice through the air!'
+    };
+  }
+
   // Particle Utilities
   addParticle(pos, vel, colorHex, maxLife = 1.0) {
     if (this.particleData.length >= this.maxParticles) {
@@ -547,6 +686,12 @@ export class WandMagic {
         this.spawnParticleBurst(p.mesh.position, 0xcceeff, 2, 0.8);
       } else if (p.type === 'aguamenti') {
         this.spawnParticleBurst(p.mesh.position, 0x55ddff, 2, 0.6);
+      } else if (p.type === 'avadakedavra') {
+        this.spawnParticleBurst(p.mesh.position, 0x00ff44, 4, 1.8);
+      } else if (p.type === 'expelliarmus') {
+        this.spawnParticleBurst(p.mesh.position, 0xff2222, 3, 1.4);
+      } else if (p.type === 'sectumsempra') {
+        this.spawnParticleBurst(p.mesh.position, 0xd8e6f0, 2, 1.2);
       } else if (p.type === 'alohomora') {
         p.mesh.rotation.z += delta * 7;
       }
@@ -563,13 +708,29 @@ export class WandMagic {
 
       // Detonation on impact or expiration
       if (hitGround || p.life >= p.maxLife) {
-        if (p.type === 'incendio') {
+        // Horcrux impact check!
+        if (this.horcruxManager) {
+          this.horcruxManager.checkSpellHit(p.mesh.position, p.type, this);
+        }
+
+        if (p.type === 'avadakedavra') {
+          soundSynth.playSpellAvadaKedavra();
+          this.spawnParticleBurst(p.mesh.position, 0x00ff44, 50, 9.0);
+          this.spawnParticleBurst(p.mesh.position, 0x66ffaa, 25, 5.0);
+          this.createGroundScorch(p.mesh.position);
+          this.cameraShakeIntensity = 0.45;
+        } else if (p.type === 'incendio') {
           // Explosive fire detonation!
           soundSynth.playSpellIncendio();
           this.spawnParticleBurst(p.mesh.position, 0xff4500, 35, 6.0);
           this.spawnParticleBurst(p.mesh.position, 0xffd54f, 20, 4.0);
           this.createGroundScorch(p.mesh.position);
           this.cameraShakeIntensity = 0.12;
+        } else if (p.type === 'expelliarmus') {
+          this.spawnParticleBurst(p.mesh.position, 0xff2222, 28, 5.5);
+          this.cameraShakeIntensity = 0.08;
+        } else if (p.type === 'sectumsempra') {
+          this.spawnParticleBurst(p.mesh.position, 0xeef4fa, 26, 6.0);
         } else if (p.type === 'patronus') {
           this.spawnParticleBurst(p.mesh.position, 0xecf8ff, 30, 4.5);
         } else if (p.type === 'aguamenti') {

@@ -1587,3 +1587,251 @@ body:has(#home:not([hidden])) #menu {
   pointer-events: none;
   transition: opacity 0.5s ease;
 }
+
+/* =========================================================
+   HORCRUX QUEST & GALLEON TRACKER HUD
+   ========================================================= */
+.horcrux-tracker-hud {
+  position: fixed;
+  top: 72px;
+  left: 20px;
+  background: rgba(10, 13, 20, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.15);
+  font-family: var(--font-display-latin), serif;
+  color: #f5f0e6;
+  max-width: 320px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.cinematic-active ~ .horcrux-tracker-hud,
+body:has(#hud.cinematic-active) .horcrux-tracker-hud {
+  opacity: 0;
+}
+
+.ht-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding-bottom: 4px;
+}
+
+.ht-icon {
+  color: #ffd700;
+  font-size: 14px;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+.ht-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd700;
+  text-transform: uppercase;
+}
+
+.ht-score {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(212, 175, 55, 0.25);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.ht-pips {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+}
+
+.ht-pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.ht-pip.destroyed {
+  background: rgba(255, 215, 0, 0.35);
+  border-color: #ffd700;
+  color: #ffe066;
+  filter: drop-shadow(0 0 8px #ffd700);
+  animation: pipDestroyedPulse 1.5s infinite alternate;
+}
+
+@keyframes pipDestroyedPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 4px #ffd700); }
+  100% { transform: scale(1.1); filter: drop-shadow(0 0 10px #ffe066); }
+}
+
+.ht-galleons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  color: #dedede;
+}
+
+.ht-galleons b {
+  color: #ffd700;
+  font-family: var(--font-mono);
+}
+
+.ht-sub-hint {
+  font-size: 9.5px;
+  color: #aaaaaa;
+  line-height: 1.3;
+}
+
+/* =========================================================
+   SORTING HAT CEREMONY INTERACTIVE MODAL
+   ========================================================= */
+.sorting-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 10, 0.85);
+  backdrop-filter: blur(14px);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.4s ease;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sorting-modal-card {
+  background: linear-gradient(145deg, #121622 0%, #0a0d15 100%);
+  border: 2px solid var(--gold-primary);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 4vw, 36px);
+  max-width: 680px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: center;
+  color: #f7eedb;
+  position: relative;
+}
+
+.sm-hat-icon {
+  font-size: 42px;
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+  animation: hatWobble 3s infinite ease-in-out;
+}
+
+@keyframes hatWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+.sm-title {
+  font-family: var(--font-display-deva), var(--font-display-latin), serif;
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: var(--gold-bright);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.sm-poem {
+  font-family: var(--font-display-latin), serif;
+  font-style: italic;
+  font-size: 13.5px;
+  color: #c9c0b0;
+  line-height: 1.5;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.sm-houses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sm-house-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #fff;
+}
+
+.sm-house-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.sm-house-btn.gryffindor:hover {
+  background: rgba(126, 18, 21, 0.4);
+  border-color: #df9a20;
+  box-shadow: 0 0 20px rgba(223, 154, 32, 0.5);
+}
+
+.sm-house-btn.slytherin:hover {
+  background: rgba(26, 71, 42, 0.4);
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.sm-house-btn.ravenclaw:hover {
+  background: rgba(14, 26, 64, 0.4);
+  border-color: #4fc3f7;
+  box-shadow: 0 0 20px rgba(79, 195, 247, 0.4);
+}
+
+.sm-house-btn.hufflepuff:hover {
+  background: rgba(236, 185, 57, 0.3);
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.sm-h-icon {
+  font-size: 28px;
+}
+
+.sm-h-name {
+  font-family: var(--font-display-latin);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.sm-h-trait {
+  font-size: 10.5px;
+  color: #b5ac98;
+  line-height: 1.25;
+}

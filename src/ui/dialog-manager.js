@@ -62,4 +62,54 @@ export class DialogManager {
       this.promptEl.classList.remove('show');
     }
   }
+
+  showInteractiveSorting(onSelectHouse) {
+    // Remove any existing modal
+    const existing = document.querySelector('.sorting-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'sorting-modal-overlay';
+    overlay.innerHTML = `
+      <div class="sorting-modal-card">
+        <div class="sm-hat-icon">🧙‍♂️</div>
+        <h2 class="sm-title">सॉर्टिंग हैट समारोह · The Sorting Hat Ceremony</h2>
+        <p class="sm-poem">
+          "There's nothing hidden in your head the Sorting Hat can't see, so try me on and I will tell you where you ought to be! Tell me, young wizard: which House does your spirit seek?"
+        </p>
+        <div class="sm-houses-grid">
+          <button class="sm-house-btn gryffindor" data-house="gryffindor">
+            <span class="sm-h-icon">🦁</span>
+            <span class="sm-h-name">GRYFFINDOR</span>
+            <span class="sm-h-trait">Bravery, daring, nerve, and chivalry.</span>
+          </button>
+          <button class="sm-house-btn slytherin" data-house="slytherin">
+            <span class="sm-h-icon">🐍</span>
+            <span class="sm-h-name">SLYTHERIN</span>
+            <span class="sm-h-trait">Ambition, cunning, resourcefulness.</span>
+          </button>
+          <button class="sm-house-btn ravenclaw" data-house="ravenclaw">
+            <span class="sm-h-icon">🦅</span>
+            <span class="sm-h-name">RAVENCLAW</span>
+            <span class="sm-h-trait">Wisdom, intelligence, wit, and learning.</span>
+          </button>
+          <button class="sm-house-btn hufflepuff" data-house="hufflepuff">
+            <span class="sm-h-icon">🦡</span>
+            <span class="sm-h-name">HUFFLEPUFF</span>
+            <span class="sm-h-trait">Loyalty, patience, hard work, and fair play.</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelectorAll('.sm-house-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const house = btn.getAttribute('data-house');
+        overlay.remove();
+        if (onSelectHouse) onSelectHouse(house);
+      });
+    });
+  }
 }

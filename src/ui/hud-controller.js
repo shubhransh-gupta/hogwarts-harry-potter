@@ -340,13 +340,22 @@ export class HUDController {
 
     this.wandMagic.spells.forEach((s, idx) => {
       const btn = document.createElement('button');
-      btn.className = `spell-pill ${idx === this.wandMagic.activeSpellIndex ? 'active' : ''}`;
+      const isLocked = s.unlocked === false;
+      btn.className = `spell-pill ${idx === this.wandMagic.activeSpellIndex ? 'active' : ''} ${isLocked ? 'locked' : ''}`;
       btn.id = `spell-slot-${s.id}`;
       btn.innerHTML = `
         <span class="sp-key">${s.keyAlt}</span>
-        <span class="sp-name">${s.name}</span>
+        <span class="sp-name">${isLocked ? '🔒 ' + s.name : s.name}</span>
       `;
       btn.addEventListener('click', () => {
+        if (s.unlocked === false) {
+          this.dialogManager.showToast(
+            'मंत्र अभी लॉक है!',
+            `${s.name} is locked! Open Enchanted Mystery Boxes or destroy Horcruxes to unlock!`,
+            3200
+          );
+          return;
+        }
         this.wandMagic.selectSpell(idx);
         this.updateSpellDisplay();
         const res = this.wandMagic.castActiveSpell(this.worldManager.getInteractiveObjects());
@@ -360,7 +369,7 @@ export class HUDController {
 
   updateSpellDisplay() {
     const active = this.wandMagic.getActiveSpell();
-    if (this.modeEl) {
+    if (this.modeEl && active) {
       this.modeEl.innerHTML = `Wand Spell: <b style="color: ${active.color}">${active.name}</b> [${active.keyAlt}]`;
     }
 
@@ -368,6 +377,11 @@ export class HUDController {
       const btn = document.getElementById(`spell-slot-${s.id}`);
       if (btn) {
         btn.classList.toggle('active', idx === this.wandMagic.activeSpellIndex);
+        btn.classList.toggle('locked', s.unlocked === false);
+        const nameEl = btn.querySelector('.sp-name');
+        if (nameEl) {
+          nameEl.textContent = s.unlocked === false ? '🔒 ' + s.name : s.name;
+        }
       }
     });
   }

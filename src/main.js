@@ -11,6 +11,7 @@ import { DialogManager } from './ui/dialog-manager.js';
 import { HUDController } from './ui/hud-controller.js';
 import { soundSynth } from './audio/sound-synthesizer.js';
 import { TrainJourneyController } from './world/train-journey.js';
+import { HorcruxQuestManager } from './world/horcrux-quest.js';
 
 class HogwartsGame {
   constructor() {
@@ -42,6 +43,8 @@ class HogwartsGame {
     this.goldenSnitch = new GoldenSnitch(this.scene);
     this.npcManager = new NPCManager(this.scene);
     this.dialogManager = new DialogManager();
+    this.horcruxManager = new HorcruxQuestManager(this.scene, this.player, this.dialogManager);
+    this.wandMagic.setHorcruxManager(this.horcruxManager);
     this.trainJourney = new TrainJourneyController(this.scene, this.camera, this.player, this.worldManager, this.dialogManager);
     this.hudController = new HUDController(this.worldManager, this.wandMagic, this.player, this.dialogManager);
 
@@ -137,6 +140,15 @@ class HogwartsGame {
           break;
         case 'KeyZ':
           this.selectAndCastSpell(6);
+          break;
+        case 'KeyG':
+          this.selectAndCastSpell(7); // Avada Kedavra
+          break;
+        case 'KeyH':
+          this.selectAndCastSpell(8); // Expelliarmus
+          break;
+        case 'KeyJ':
+          this.selectAndCastSpell(9); // Sectumsempra
           break;
 
         // Landmark spawn hotkeys (Digit 1-8)
@@ -297,8 +309,26 @@ class HogwartsGame {
       return;
     }
 
+    // Check if near an Enchanted Mystery Box
+    if (this.horcruxManager && this.horcruxManager.openNearbyMysteryBox(this.player.position, this.wandMagic)) {
+      this.hudController.updateSpellDisplay();
+      return;
+    }
+
     const dialog = this.npcManager.checkProximity(this.player.position, 6.0);
     if (dialog) {
+      if (dialog.isSortingHat) {
+        this.dialogManager.showInteractiveSorting((house) => {
+          this.player.setHouse(house);
+          soundSynth.playSortingHatFanfare();
+          this.dialogManager.showToast(
+            'सॉर्टिंग पूर्ण!',
+            `The Sorting Hat has placed you in ${house.toUpperCase()}! +50 House Points!`,
+            5000
+          );
+        });
+        return;
+      }
       this.dialogManager.showDialog(dialog);
     } else {
 
@@ -353,7 +383,17 @@ class HogwartsGame {
     // 4. Update Wand Magic Particles, Trailing Ribbons & Screen Shake
     this.wandMagic.update(delta, elapsed, this.camera);
 
-    // 5. Update Golden Snitch
+    // 5. Update NPC Crowd Animations & Sorting Hat
+    if (this.npcManager) {
+      this.npcManager.update(delta, elapsed);
+    }
+
+    // 6. Update Horcrux Quest, Spinning Galleons & Mystery Boxes
+    if (this.horcruxManager) {
+      this.horcruxManager.update(delta, elapsed, this.player.position, this.wandMagic);
+    }
+
+    // 7. Update Golden Snitch
     this.goldenSnitch.update(delta, elapsed, this.player.position);
     if (this.goldenSnitch.checkCatch(this.player.position)) {
       this.dialogManager.showToast('गोल्डन स्निच!', 'You caught the Golden Snitch! +150 Points for Gryffindor!', 4500);
@@ -372,7 +412,9 @@ class HogwartsGame {
       if (dPitch < 8.0) {
         this.dialogManager.setPrompt(`Press <b>[E]</b> to Mount Nimbus 2000 Broomstick 🧹`);
       } else if (this.player.isSwimming) {
-        this.dialogManager.setPrompt(`🏊 Swimming in the Black Lake · <kbd>Shift</kbd> fast stroke`);
+        this.dialogManager.setPrompt(this.player.isDiving
+          ? `🤿 Diving in the Black Lake Depths · <kbd>Space</kbd> Surface to air`
+          : `🏊 Swimming in the Black Lake · <kbd>Shift</kbd> Dive underwater · <kbd>WASD</kbd> Stroke`);
       } else {
         this.dialogManager.setPrompt(null);
       }

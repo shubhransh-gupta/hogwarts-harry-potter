@@ -43,6 +43,9 @@ export class Player {
     this.isMoving = false;
     this.isCinematic = false;
     this.castAnimTimer = 0;
+    this.house = 'gryffindor';
+    this.isDiving = false;
+    this.diveDepth = 0;
   }
 
   playCastAnimation() {
@@ -62,6 +65,10 @@ export class Player {
     const pantsMat = new THREE.MeshStandardMaterial({ color: 0x222226, roughness: 0.9 });
     const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111112, roughness: 0.45, metalness: 0.1 });
     const wandWoodMat = new THREE.MeshStandardMaterial({ color: 0x4a2e18, roughness: 0.5 });
+
+    this.scarfMat1 = scarfMat1;
+    this.scarfMat2 = scarfMat2;
+    this.robeMat = robeMat;
 
     // 0. Contact Drop Shadow Decal (Grounded shadow blob)
     const shadowGeo = new THREE.CircleGeometry(0.62, 16);
@@ -96,6 +103,7 @@ export class Player {
     head.position.y = 2.25;
     head.castShadow = true;
     group.add(head);
+    this.head = head;
 
     // Dark ruffled hair
     const hairGeo = new THREE.SphereGeometry(0.35, 12, 8, 0, Math.PI * 2, 0, Math.PI / 1.7);
@@ -209,8 +217,28 @@ export class Player {
     this.updateCamera();
   }
 
+  setHouse(house) {
+    this.house = house;
+    const houseColors = {
+      gryffindor: { primary: 0x7e1215, secondary: 0xdf9a20 },
+      slytherin: { primary: 0x1a472a, secondary: 0xcccccc },
+      ravenclaw: { primary: 0x0e1a40, secondary: 0x946b2d },
+      hufflepuff: { primary: 0xecb939, secondary: 0x111111 }
+    };
+    const c = houseColors[house] || houseColors.gryffindor;
+    if (this.scarfMat1) this.scarfMat1.color.setHex(c.primary);
+    if (this.scarfMat2) this.scarfMat2.color.setHex(c.secondary);
+  }
+
   jump() {
-    if (this.isGrounded && !this.isSwimming) {
+    if (this.isSwimming) {
+      // Ascend to surface when swimming
+      this.isDiving = false;
+      this.diveDepth = Math.max(0, this.diveDepth - 1.5);
+      return;
+    }
+
+    if (this.isGrounded) {
       this.velocity.y = 10.0;
       this.isGrounded = false;
     }
@@ -237,7 +265,7 @@ export class Player {
       }
     }
 
-    // 1. Water & Swimming Engine (Black Lake / Great Lake)
+    // 1. Realistic Water & Swimming Physics Engine (Black Lake / Great Lake)
     const water = worldManager ? worldManager.isWaterAt(this.position.x, this.position.z) : { isWater: false };
 
     if (water.isWater) {
@@ -246,22 +274,32 @@ export class Player {
         soundSynth.playWaterSplash();
       }
 
-      // Buoyant water flotation: bobs smoothly on water surface
-      const targetSwimY = water.surfaceY - 0.75 + Math.sin(elapsed * 2.5) * 0.06;
+      // Check diving toggle (Shift while moving forward or looking down)
+      const forwardInput = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
+      if (this.keys.sprint && forwardInput > 0 && this.cameraPitch > 0.2) {
+        this.isDiving = true;
+        this.diveDepth = Math.min(3.5, this.diveDepth + delta * 2.2);
+      } else if (!this.keys.sprint && this.diveDepth > 0) {
+        // Natural buoyant resurgence to water surface
+        this.diveDepth = Math.max(0, this.diveDepth - delta * 2.5);
+        if (this.diveDepth === 0) this.isDiving = false;
+      }
+
+      // Buoyant water equilibrium: body bobs smoothly on water surface, submerged to chest/shoulders
+      const targetSwimY = (water.surfaceY - 1.25 - this.diveDepth) + Math.sin(elapsed * 2.8) * 0.08;
       this.position.y += (targetSwimY - this.position.y) * Math.min(1, 8 * delta);
       this.velocity.y = 0;
       this.isGrounded = false;
 
-      // Swimming horizontal displacement
-      const swimSpeed = this.keys.sprint ? 7.2 : 4.6;
-      const forward = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
-      const strafe = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
-      const isMoving = forward !== 0 || strafe !== 0;
+      // Swimming horizontal displacement with hydrodynamic fluid drag
+      const swimSpeed = this.isDiving ? 8.5 : (this.keys.sprint ? 7.2 : 4.8);
+      const strafeInput = (this.keys.right ? 1 : 0) - (this.keys.left ? 1 : 0);
+      const isMoving = forwardInput !== 0 || strafeInput !== 0;
 
       if (isMoving) {
-        const len = Math.hypot(forward, strafe);
-        const fwdNorm = forward / len;
-        const strNorm = strafe / len;
+        const len = Math.hypot(forwardInput, strafeInput);
+        const fwdNorm = forwardInput / len;
+        const strNorm = strafeInput / len;
         const u = Math.sin(this.cameraYaw);
         const d = Math.cos(this.cameraYaw);
         const dirX = (u * fwdNorm - d * strNorm);
@@ -277,28 +315,33 @@ export class Player {
         while (diff > Math.PI) diff -= Math.PI * 2;
         this.mesh.rotation.y += diff * 12 * delta;
 
-        // Swimming breaststroke & flutter kick animations
-        this.walkCycle += delta * (this.keys.sprint ? 9 : 6);
-        this.leftArm.rotation.x = Math.sin(this.walkCycle) * 1.2;
-        this.rightArm.rotation.x = Math.sin(this.walkCycle + Math.PI) * 1.2;
-        this.leftLeg.rotation.x = Math.sin(this.walkCycle * 2) * 0.45;
-        this.rightLeg.rotation.x = -Math.sin(this.walkCycle * 2) * 0.45;
-        this.mesh.rotation.x = -0.32; // Body leans forward into the water!
+        // Prone horizontal swimming pose: body lies flat on the water
+        this.mesh.rotation.x = -Math.PI / 2.15;
+        if (this.head) this.head.rotation.x = 0.68; // Lift head out of water to breathe and look ahead
+
+        // Freestyle crawl arm strokes and flutter kicking legs
+        this.walkCycle += delta * (this.keys.sprint ? 11 : 7);
+        this.leftArm.rotation.x = Math.sin(this.walkCycle) * 1.8;
+        this.rightArm.rotation.x = Math.sin(this.walkCycle + Math.PI) * 1.8;
+        this.leftLeg.rotation.x = Math.sin(this.walkCycle * 2) * 0.65;
+        this.rightLeg.rotation.x = -Math.sin(this.walkCycle * 2) * 0.65;
 
         this.swimStrokeTimer += delta;
-        if (this.swimStrokeTimer > 1.2) {
+        if (this.swimStrokeTimer > 0.95) {
           soundSynth.playWaterSplash();
           this.swimStrokeTimer = 0;
         }
       } else {
-        // Treading water gently
-        this.mesh.rotation.x = 0;
+        // Treading water idle: inclined body, sculling arms, treading flutter
+        this.mesh.rotation.x = -0.32;
+        if (this.head) this.head.rotation.x = 0.25;
+
         this.leftArm.rotation.x = 0.2;
         this.rightArm.rotation.x = 0.2;
-        this.leftArm.rotation.z = 0.45 + Math.sin(elapsed * 2) * 0.15;
-        this.rightArm.rotation.z = -0.45 - Math.sin(elapsed * 2) * 0.15;
-        this.leftLeg.rotation.x = Math.sin(elapsed * 2.5) * 0.2;
-        this.rightLeg.rotation.x = -Math.sin(elapsed * 2.5) * 0.2;
+        this.leftArm.rotation.z = 0.65 + Math.sin(elapsed * 2.5) * 0.2;
+        this.rightArm.rotation.z = -0.65 - Math.sin(elapsed * 2.5) * 0.2;
+        this.leftLeg.rotation.x = Math.sin(elapsed * 2.5) * 0.3;
+        this.rightLeg.rotation.x = -Math.sin(elapsed * 2.5) * 0.3;
       }
 
       if (this.shadowMesh) {
@@ -311,7 +354,10 @@ export class Player {
     } else {
       if (this.isSwimming) {
         this.isSwimming = false;
+        this.isDiving = false;
+        this.diveDepth = 0;
         this.mesh.rotation.x = 0;
+        if (this.head) this.head.rotation.x = 0;
         if (this.leftArm) {
           this.leftArm.rotation.x = 0;
           this.leftArm.rotation.z = 0.2;
