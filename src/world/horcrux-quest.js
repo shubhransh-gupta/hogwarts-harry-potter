@@ -6,6 +6,72 @@
 import * as THREE from 'three';
 import { soundSynth } from '../audio/sound-synthesizer.js';
 
+export const VOLDEMORT_VISIONS = {
+  diary: {
+    id: 'diary',
+    name: 'Tom Riddle’s Diary',
+    quote: '"I can make bad things happen to people who annoy me... I can make them hurt if I want to."',
+    memoryTitle: '1943 · The Chamber of Secrets & Myrtle’s Murder',
+    victim: 'Moaning Myrtle & Hogwarts Students',
+    body: 'A chilling psychic shockwave strikes your mind! You see 16-year-old Tom Riddle in the girls’ lavatory speaking in sibilant Parseltongue. The massive green Basilisk lunges from the pipes. Student Myrtle Warren looks into its yellow eyes and collapses dead on the wet stone floor. Tom slices into his soul, binding the murder into this dark enchanted journal!',
+    color: '#aa22bb'
+  },
+  ring: {
+    id: 'ring',
+    name: 'Marvolo Gaunt’s Ring',
+    quote: '"The Riddle bloodline is extinguished tonight."',
+    memoryTitle: '1943 · The Little Hangleton Massacre',
+    victim: 'Tom Riddle Sr. & The Riddle Family',
+    body: 'You are plunged into the shadows of the Riddle Manor parlor! Tom Riddle raises his wand with merciless eyes. Blinding flashes of green lightning illuminate the room as he slaughters his Muggle father and grandparents in cold blood. He frames his uncle Morfin Gaunt and curses Cadmus Peverell’s Resurrection Stone ring with dark soul magic!',
+    color: '#00ff88'
+  },
+  locket: {
+    id: 'locket',
+    name: 'Salazar Slytherin’s Locket',
+    quote: '"Drink it, elf! Every last burning drop!"',
+    memoryTitle: 'The Sunken Cavern & The Inferi of the Deep',
+    victim: 'Regulus Black & Kreacher the Elf',
+    body: 'Freezing, pitch-black water surrounds you inside a towering sea cave! Lord Voldemort laughs as he forces the house-elf Kreacher to drink the burning Emerald Potion of Despair. As the victim crawls to the dark lake for water, hundreds of pale skeletal Inferi drag him beneath the depths, guarding Slytherin’s serpentine locket!',
+    color: '#00e5ff'
+  },
+  cup: {
+    id: 'cup',
+    name: 'Helga Hufflepuff’s Cup',
+    quote: '"A delightful vintage to die for, Madam Smith."',
+    memoryTitle: 'The Poisoning of Hepzibah Smith',
+    victim: 'Hepzibah Smith',
+    body: 'Rich velvet and glittering antiques fade into view. Tom Riddle offers a courteous smile to elderly collector Hepzibah Smith while covertly slipping lethal Goblin poison into her teacup. As she gasps her last breath, Riddle seizes the two-handled golden chalice of Hufflepuff, tearing his soul to claim the founder’s relic!',
+    color: '#ffea00'
+  },
+  diadem: {
+    id: 'diadem',
+    name: 'Rowena Ravenclaw’s Diadem',
+    quote: '"Wit beyond measure is man’s greatest treasure... and now it is mine."',
+    memoryTitle: 'The Albanian Forest Treachery',
+    victim: 'The Grey Lady (Helena Ravenclaw)',
+    body: 'The winds of Albania howl through pine trees! The ghost of Helena Ravenclaw screams as Tom Riddle, having extracted the diadem’s hiding place with false love, strikes down her spirit with dark curses. He defiles Rowena Ravenclaw’s sacred sapphire tiara, twisting its wisdom into dark eternal malice!',
+    color: '#00b0ff'
+  },
+  nagini: {
+    id: 'nagini',
+    name: 'Nagini the Serpent',
+    quote: '"Nagini... dinner."',
+    memoryTitle: 'The Malfoy Manor & Shrieking Shack Executions',
+    victim: 'Severus Snape & Charity Burbage',
+    body: 'A terrifying vision fills your sight! Lord Voldemort stands over Severus Snape in the dust of the Shrieking Shack. With a cold flick of his wand, the 12-foot serpent strikes repeatedly, venom burning through the shadows as Voldemort sacrifices his most loyal servant to protect his final living Horcrux!',
+    color: '#00e676'
+  },
+  voldemort: {
+    id: 'voldemort',
+    name: 'Lord Voldemort',
+    quote: '"Avada Kedavra—NOOOOO!"',
+    memoryTitle: 'The Rebound of the Elder Wand',
+    victim: 'Lord Voldemort',
+    body: 'The final emerald lightning bolt collides with your Expelliarmus! With every Horcrux severed, Voldemort’s mortality is stripped bare. The Elder Wand refuses to kill its true master—the Killing Curse rebounds, and Lord Voldemort disintegrates into ribbons of black ash, banishing his reign forever!',
+    color: '#ff0033'
+  }
+};
+
 export class HorcruxQuestManager {
   constructor(scene, player, dialogManager) {
     this.scene = scene;
@@ -30,12 +96,34 @@ export class HorcruxQuestManager {
     this.coins = [];
     this.mysteryBoxes = [];
     this.voldemortBoss = null;
+    this.activeDuelHorcrux = null;
 
     this.initHorcruxes();
     this.initCoins();
     this.initMysteryBoxes();
     this.initHUDTracker();
+    this.initDuelHUD();
     this.updateCurrentTarget();
+  }
+
+  initDuelHUD() {
+    let duelHud = document.getElementById('horcrux-duel-hud');
+    if (!duelHud) {
+      duelHud = document.createElement('div');
+      duelHud.id = 'horcrux-duel-hud';
+      duelHud.className = 'horcrux-duel-hud';
+      duelHud.hidden = true;
+      duelHud.innerHTML = `
+        <div class="hd-badge">⚔️ DARK HORCRUX CONFRONTATION</div>
+        <div class="hd-name" id="hd-name">Tom Riddle’s Diary</div>
+        <div class="hd-hp-track">
+          <div class="hd-hp-fill" id="hd-hp-fill" style="width: 100%;"></div>
+        </div>
+        <div class="hd-status" id="hd-status">HP: 3 / 3 · Strike with Wand Spells [Left-Click / Q-Z] or Press [E]!</div>
+      `;
+      document.body.appendChild(duelHud);
+    }
+    this.duelHudEl = duelHud;
   }
 
   initHUDTracker() {
@@ -315,6 +403,18 @@ export class HorcruxQuestManager {
       beacon.position.y = 0.9;
       mesh.add(beacon);
 
+      // Glowing dark ward shield around the Horcrux
+      const wardGeo = new THREE.SphereGeometry(1.35, 12, 10);
+      const wardMat = new THREE.MeshBasicMaterial({
+        color: def.auraColor,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.5
+      });
+      const wardShield = new THREE.Mesh(wardGeo, wardMat);
+      wardShield.position.y = 0.2;
+      mesh.add(wardShield);
+
       this.scene.add(mesh);
 
       this.horcruxes.push({
@@ -322,8 +422,12 @@ export class HorcruxQuestManager {
         name: def.name,
         zone: def.zone,
         pos: def.pos,
+        auraColor: def.auraColor,
         mesh,
         beacon,
+        wardShield,
+        hp: 3,
+        maxHp: 3,
         isCreature: def.isCreature || false,
         isDestroyed: false,
         initialY: def.pos.y
@@ -466,7 +570,10 @@ export class HorcruxQuestManager {
   }
 
   update(delta, elapsed, playerPos, wandMagic) {
-    // Animate Horcruxes (hovering, beacon pulsing)
+    let nearbyDuelHorcrux = null;
+    let minDuelDist = 14.0;
+
+    // Animate Horcruxes (hovering, beacon pulsing, ward shields)
     this.horcruxes.forEach(h => {
       if (h.isDestroyed) return;
 
@@ -482,11 +589,43 @@ export class HorcruxQuestManager {
         }
       }
 
+      if (h.wardShield) {
+        h.wardShield.rotation.y += delta * 1.8;
+        h.wardShield.rotation.z += delta * 1.1;
+      }
+
       if (h.beacon) {
         const sc = 0.85 + Math.sin(elapsed * 3.5) * 0.25;
         h.beacon.scale.set(sc, sc, sc);
       }
+
+      const dist = playerPos.distanceTo(h.pos);
+      if (dist < minDuelDist) {
+        minDuelDist = dist;
+        nearbyDuelHorcrux = h;
+      }
     });
+
+    // Update Dark Duel HUD
+    if (nearbyDuelHorcrux) {
+      this.activeDuelHorcrux = nearbyDuelHorcrux;
+      if (this.duelHudEl) {
+        this.duelHudEl.hidden = false;
+        const nameEl = document.getElementById('hd-name');
+        const fillEl = document.getElementById('hd-hp-fill');
+        const statusEl = document.getElementById('hd-status');
+        if (nameEl) nameEl.textContent = nearbyDuelHorcrux.name;
+        if (fillEl) fillEl.style.width = `${Math.max(0, (nearbyDuelHorcrux.hp / nearbyDuelHorcrux.maxHp) * 100)}%`;
+        if (statusEl) {
+          statusEl.textContent = `HP: ${nearbyDuelHorcrux.hp} / ${nearbyDuelHorcrux.maxHp} · Cast Wand Spells [Left-Click / Q-Z] or Press [E]!`;
+        }
+      }
+    } else {
+      if (this.activeDuelHorcrux) {
+        this.activeDuelHorcrux = null;
+        if (this.duelHudEl) this.duelHudEl.hidden = true;
+      }
+    }
 
     // Animate Golden Galleons & check collection
     this.coins.forEach(c => {
@@ -513,6 +652,16 @@ export class HorcruxQuestManager {
     if (this.voldemortBoss && !this.voldemortBoss.isDefeated) {
       this.updateVoldemortBoss(delta, elapsed, playerPos);
     }
+  }
+
+  getNearbyHorcrux(playerPos, maxDistance = 6.0) {
+    for (let i = 0; i < this.horcruxes.length; i++) {
+      const h = this.horcruxes[i];
+      if (!h.isDestroyed && playerPos.distanceTo(h.pos) < maxDistance) {
+        return h;
+      }
+    }
+    return null;
   }
 
   collectCoin(coin) {
@@ -560,14 +709,14 @@ export class HorcruxQuestManager {
       const h = this.horcruxes[i];
       if (h.isDestroyed) continue;
 
-      if (hitPos.distanceTo(h.pos) < 3.5) {
-        this.destroyHorcrux(h, spellId, wandMagic);
+      if (hitPos.distanceTo(h.pos) < 3.8) {
+        this.damageHorcrux(h, spellId, wandMagic);
         return true;
       }
     }
 
     if (this.voldemortBoss && !this.voldemortBoss.isDefeated) {
-      if (hitPos.distanceTo(this.voldemortBoss.pos) < 4.0) {
+      if (hitPos.distanceTo(this.voldemortBoss.pos) < 4.5) {
         this.damageVoldemort(spellId, wandMagic);
         return true;
       }
@@ -576,13 +725,67 @@ export class HorcruxQuestManager {
     return false;
   }
 
+  damageHorcrux(horcrux, spellId, wandMagic) {
+    if (horcrux.isDestroyed) return;
+
+    let damage = 1;
+    if (spellId === 'avadakedavra') damage = 3;
+    else if (spellId === 'incendio' || spellId === 'sectumsempra' || spellId === 'expelliarmus') damage = 2;
+
+    horcrux.hp -= damage;
+    soundSynth.playHorcruxHit();
+
+    // Visual ward flash effect
+    if (horcrux.wardShield) {
+      horcrux.wardShield.material.color.setHex(0xff0033);
+      horcrux.wardShield.scale.set(1.5, 1.5, 1.5);
+      setTimeout(() => {
+        if (horcrux.wardShield && !horcrux.isDestroyed) {
+          horcrux.wardShield.material.color.setHex(horcrux.auraColor);
+          horcrux.wardShield.scale.set(1.0, 1.0, 1.0);
+        }
+      }, 240);
+    }
+
+    // Dark soul damage sparks
+    this.createDarkSoulBurst(horcrux.pos, 16);
+
+    // Update Duel HUD
+    if (this.duelHudEl) {
+      this.duelHudEl.hidden = false;
+      const nameEl = document.getElementById('hd-name');
+      const fillEl = document.getElementById('hd-hp-fill');
+      const statusEl = document.getElementById('hd-status');
+      if (nameEl) nameEl.textContent = horcrux.name;
+      if (fillEl) fillEl.style.width = `${Math.max(0, (horcrux.hp / horcrux.maxHp) * 100)}%`;
+      if (statusEl) {
+        statusEl.textContent = `HP: ${Math.max(0, horcrux.hp)} / ${horcrux.maxHp} · Cast Wand Spells [Left-Click / Q-Z] or Press [E]!`;
+      }
+    }
+
+    if (horcrux.hp <= 0) {
+      this.destroyHorcrux(horcrux, spellId, wandMagic);
+    } else {
+      this.dialogManager.showToast(
+        `हॉरक्रक्स पर प्रहार!`,
+        `⚔️ ${horcrux.name} struck! HP: ${horcrux.hp}/${horcrux.maxHp}`,
+        1800
+      );
+    }
+  }
+
   destroyHorcrux(horcrux, spellId, wandMagic) {
     horcrux.isDestroyed = true;
     this.horcruxesDestroyed++;
 
     soundSynth.playHorcruxDestroyed();
-    this.createDarkSoulBurst(horcrux.pos);
+    soundSynth.playVoldemortVision();
+    this.createDarkSoulBurst(horcrux.pos, 55);
     this.scene.remove(horcrux.mesh);
+
+    // Hide duel HUD
+    if (this.duelHudEl) this.duelHudEl.hidden = true;
+    this.activeDuelHorcrux = null;
 
     const pip = document.getElementById(`pip-${horcrux.id}`);
     const item = document.getElementById(`item-${horcrux.id}`);
@@ -599,19 +802,18 @@ export class HorcruxQuestManager {
 
     this.updateCurrentTarget();
 
-    this.dialogManager.showToast(
-      `हॉरक्रक्स नष्ट: ${horcrux.name}!`,
-      `HORCRUX DESTROYED! [${this.horcruxesDestroyed}/7] Soul fragment banished!`,
-      5500
-    );
+    // Trigger Voldemort Killing Vision Modal
+    const vision = VOLDEMORT_VISIONS[horcrux.id];
+    if (vision) {
+      this.dialogManager.showVoldemortVision(vision);
+    }
 
     if (this.horcruxesDestroyed === 6) {
       this.spawnLordVoldemortClimax(wandMagic);
     }
   }
 
-  createDarkSoulBurst(pos) {
-    const burstCount = 50;
+  createDarkSoulBurst(pos, burstCount = 50) {
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(burstCount * 3);
     const velocities = [];
@@ -724,7 +926,8 @@ export class HorcruxQuestManager {
       this.voldemortBoss.isDefeated = true;
       this.horcruxesDestroyed++;
 
-      this.createDarkSoulBurst(this.voldemortBoss.pos);
+      soundSynth.playVoldemortVision();
+      this.createDarkSoulBurst(this.voldemortBoss.pos, 75);
       this.scene.remove(this.voldemortBoss.group);
 
       const pip = document.getElementById('pip-voldemort');
@@ -741,6 +944,9 @@ export class HorcruxQuestManager {
       if (score) score.textContent = `7 / 7`;
 
       this.updateCurrentTarget();
+
+      // Show Final Voldemort Defeat Vision Modal
+      this.dialogManager.showVoldemortVision(VOLDEMORT_VISIONS.voldemort);
 
       this.dialogManager.showToast(
         'अंतिम विजय: वोल्डमॉर्ट पराजित!',

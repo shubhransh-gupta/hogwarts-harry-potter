@@ -55,6 +55,7 @@ class HogwartsGame {
 
     this.initControls();
     this.initWindowResize();
+    this.initStoryTriggers();
 
     // Pause physics/rendering if user switches tabs to save battery & CPU
     document.addEventListener('visibilitychange', () => {
@@ -291,6 +292,26 @@ class HogwartsGame {
     });
   }
 
+  initStoryTriggers() {
+    const btnStory = document.getElementById('btn-hud-story');
+    if (btnStory) {
+      btnStory.addEventListener('click', (e) => {
+        e.stopPropagation();
+        soundSynth.resume();
+        this.dialogManager.showStoryPrologue();
+      });
+    }
+
+    const btnPauseStory = document.getElementById('pause-story-plot');
+    if (btnPauseStory) {
+      btnPauseStory.addEventListener('click', (e) => {
+        e.stopPropagation();
+        soundSynth.resume();
+        this.dialogManager.showStoryPrologue();
+      });
+    }
+  }
+
   selectAndCastSpell(index) {
     this.wandMagic.selectSpell(index);
     this.hudController.updateSpellDisplay();
@@ -310,6 +331,17 @@ class HogwartsGame {
     if (this.trainJourney && this.trainJourney.isActive) {
       this.trainJourney.completeJourney();
       return;
+    }
+
+    // Check if near a Dark Horcrux (Strike it in duel!)
+    if (this.horcruxManager) {
+      const nearHorcrux = this.horcruxManager.getNearbyHorcrux(this.player.position, 6.5);
+      if (nearHorcrux) {
+        this.castActiveWandSpell();
+        const activeSpell = this.wandMagic.spells[this.wandMagic.activeSpellIndex]?.id || 'expelliarmus';
+        this.horcruxManager.damageHorcrux(nearHorcrux, activeSpell, this.wandMagic);
+        return;
+      }
     }
 
     // Check if near Hogwarts Express at Lucknow Platform 9¾ FIRST
@@ -418,11 +450,14 @@ class HogwartsGame {
       this.dialogManager.showToast('गोल्डन स्निच!', 'You caught the Golden Snitch! +150 Points for Gryffindor!', 4500);
     }
 
-    // 6. Proximity Prompt Check for Train Boarding, NPCs, Broom & Water
+    // 6. Proximity Prompt Check for Horcruxes, Train, NPCs, Broom & Water
+    const nearHorcrux = this.horcruxManager ? this.horcruxManager.getNearbyHorcrux(this.player.position, 8.5) : null;
     const distToTrain = this.player.position.distanceTo(new THREE.Vector3(-204, 1.0, -108));
     const nearbyDialog = this.npcManager.checkProximity(this.player.position, 6.0);
 
-    if (distToTrain < 16.0 && (!this.trainJourney || !this.trainJourney.isActive)) {
+    if (nearHorcrux) {
+      this.dialogManager.setPrompt(`⚔️ Press <b>[E]</b> or <b>Left-Click</b> to Strike ${nearHorcrux.name}! [HP: ${nearHorcrux.hp}/${nearHorcrux.maxHp}]`);
+    } else if (distToTrain < 16.0 && (!this.trainJourney || !this.trainJourney.isActive)) {
       this.dialogManager.setPrompt(`🚂 Press <b>[E]</b> to Board the Hogwarts Express 5972!`);
     } else if (nearbyDialog) {
       this.dialogManager.setPrompt(`Press <b>[E]</b> to talk to ${nearbyDialog.who}`);

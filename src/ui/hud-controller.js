@@ -45,6 +45,7 @@ export class HUDController {
 
     // State
     this.isPaused = false;
+    this.hasShownPrologue = false;
     this.selectedSpawnId = 1;
     this.currentRealm = HOGWARTS_REALMS[0];
     this.lastFrameTime = performance.now();
@@ -82,7 +83,12 @@ export class HUDController {
       if (this.menuBtn) {
         this.menuBtn.hidden = false;
       }
-      this.triggerGameDisclaimer();
+      if (!this.hasShownPrologue) {
+        this.hasShownPrologue = true;
+        this.dialogManager.showStoryPrologue();
+      } else {
+        this.triggerGameDisclaimer();
+      }
     });
 
     if (this.cardBackBtn) {
@@ -132,7 +138,12 @@ export class HUDController {
       if (this.menuBtn) {
         this.menuBtn.hidden = false;
       }
-      this.triggerGameDisclaimer();
+      if (!this.hasShownPrologue) {
+        this.hasShownPrologue = true;
+        this.dialogManager.showStoryPrologue();
+      } else {
+        this.triggerGameDisclaimer();
+      }
     };
 
     if (this.goBtn) {

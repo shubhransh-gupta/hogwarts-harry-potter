@@ -514,6 +514,49 @@ class SoundSynthesizer {
     noise.start(now);
   }
 
+  // Horcrux Damaged in Duel
+  playHorcruxHit() {
+    if (!this.ctx) return;
+    this.resume();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.35);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.4);
+  }
+
+  // Voldemort Killing Vision (Dark ominous dissonance and eerie whisper sub-bass)
+  playVoldemortVision() {
+    if (!this.ctx) return;
+    this.resume();
+    const now = this.ctx.currentTime;
+
+    // Sub-bass ominous drone
+    const sub = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(65, now);
+    sub.frequency.linearRampToValueAtTime(38, now + 2.5);
+    subGain.gain.setValueAtTime(0.5, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+    sub.connect(subGain);
+    subGain.connect(this.sfxGain);
+    sub.start(now);
+    sub.stop(now + 3.0);
+
+    // Dissonant minor-second eerie chord
+    [110, 116.54, 220, 233.08, 466.16].forEach((f, idx) => {
+      this.playStrings(f, now + idx * 0.08, 3.2, 0.16);
+    });
+  }
+
   // Horcrux Destroyed (Dark screech followed by triumphant harmonic chime)
   playHorcruxDestroyed() {
     if (!this.ctx) return;

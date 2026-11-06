@@ -696,6 +696,12 @@ export class WandMagic {
         p.mesh.rotation.z += delta * 7;
       }
 
+      // Mid-air Horcrux / Boss collision detection
+      let hitTarget = false;
+      if (this.horcruxManager) {
+        hitTarget = this.horcruxManager.checkSpellHit(p.mesh.position, p.type, this);
+      }
+
       // Ground collision detection
       let hitGround = false;
       if (this.worldManager) {
@@ -706,12 +712,8 @@ export class WandMagic {
         }
       }
 
-      // Detonation on impact or expiration
-      if (hitGround || p.life >= p.maxLife) {
-        // Horcrux impact check!
-        if (this.horcruxManager) {
-          this.horcruxManager.checkSpellHit(p.mesh.position, p.type, this);
-        }
+      // Detonation on impact, ground, or expiration
+      if (hitTarget || hitGround || p.life >= p.maxLife) {
 
         if (p.type === 'avadakedavra') {
           soundSynth.playSpellAvadaKedavra();
