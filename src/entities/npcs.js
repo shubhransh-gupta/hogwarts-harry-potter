@@ -237,10 +237,10 @@ export class NPCManager {
         roughness: 0.8
       });
 
-      // Robe
+      // Robe (uses grounded contact circle shadow, no costly shadow pass)
       const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 1.25, 10), bodyMat);
       body.position.y = 0.85;
-      body.castShadow = true;
+      body.castShadow = false;
       studentGroup.add(body);
 
       // House Scarf
@@ -282,9 +282,10 @@ export class NPCManager {
     });
   }
 
-  update(delta, elapsed) {
-    // Subtle idle breathing and swaying for students
+  update(delta, elapsed, playerPos = null) {
+    // Subtle idle breathing and swaying for students (only if within 50m of player)
     this.students.forEach(s => {
+      if (playerPos && s.group.position.distanceToSquared(playerPos) > 2500) return;
       s.group.position.y = s.baseY + Math.sin(elapsed * 2.2 + s.animOffset) * 0.03;
     });
 

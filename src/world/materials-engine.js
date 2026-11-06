@@ -36,8 +36,8 @@ function createNoiseCanvas(width, height, fn) {
 export function getCastleStoneTextures() {
   if (textureCache.has('castleStone')) return textureCache.get('castleStone');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -54,18 +54,17 @@ export function getCastleStoneTextures() {
   bCtx.fillStyle = '#808080';
   bCtx.fillRect(0, 0, w, h);
 
-  const rows = 16;
+  const rows = 8;
   const rowH = h / rows;
 
   for (let r = 0; r < rows; r++) {
     const y = r * rowH;
-    const blockCount = 8;
+    const blockCount = 4;
     const blockW = w / blockCount;
     const rowOffset = (r % 2) * (blockW * 0.5);
 
     for (let c = -1; c <= blockCount + 1; c++) {
       const x = c * blockW + rowOffset;
-      // Random stone shade variation
       const shade = 95 + Math.floor(Math.random() * 45);
       const warm = shade + 4;
       const cool = shade - 2;
@@ -73,8 +72,7 @@ export function getCastleStoneTextures() {
       ctx.fillStyle = `rgb(${warm},${shade},${cool})`;
       ctx.fillRect(x + 2, y + 2, blockW - 4, rowH - 4);
 
-      // Fine stone grain inside each block
-      for (let g = 0; g < 40; g++) {
+      for (let g = 0; g < 6; g++) {
         const gx = x + 2 + Math.random() * (blockW - 4);
         const gy = y + 2 + Math.random() * (rowH - 4);
         const gShade = shade + (Math.random() - 0.5) * 35;
@@ -82,11 +80,9 @@ export function getCastleStoneTextures() {
         ctx.fillRect(gx, gy, 2, 2);
       }
 
-      // Bump map: Stone block is raised (white/light), mortar is recessed (dark)
       bCtx.fillStyle = '#b0b0b0';
       bCtx.fillRect(x + 2, y + 2, blockW - 4, rowH - 4);
 
-      // Mortar joint (dark line)
       ctx.fillStyle = '#2d2b30';
       ctx.fillRect(x, y, blockW, 2);
       ctx.fillRect(x, y, 2, rowH);
@@ -114,8 +110,8 @@ export function getCastleStoneTextures() {
 export function getMountainRockTextures() {
   if (textureCache.has('mountainRock')) return textureCache.get('mountainRock');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -133,43 +129,43 @@ export function getMountainRockTextures() {
   bCtx.fillRect(0, 0, w, h);
 
   // Horizontal geological rock strata and fissures
-  for (let y = 0; y < h; y += 4) {
-    const band = 55 + Math.sin(y * 0.08) * 22 + Math.sin(y * 0.02) * 15;
+  for (let y = 0; y < h; y += 8) {
+    const band = 55 + Math.sin(y * 0.16) * 22;
     ctx.fillStyle = `rgb(${band + 8},${band},${band - 4})`;
-    ctx.fillRect(0, y, w, 4);
+    ctx.fillRect(0, y, w, 8);
 
     bCtx.fillStyle = `rgb(${band},${band},${band})`;
-    bCtx.fillRect(0, y, w, 4);
+    bCtx.fillRect(0, y, w, 8);
   }
 
   // Vertical fractures and fissures
-  for (let f = 0; f < 35; f++) {
+  for (let f = 0; f < 12; f++) {
     const fx = Math.random() * w;
     const fy = Math.random() * h;
-    const fLen = 30 + Math.random() * 80;
+    const fLen = 20 + Math.random() * 50;
 
     ctx.strokeStyle = '#222326';
-    ctx.lineWidth = 1.5 + Math.random() * 2;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(fx, fy);
-    ctx.lineTo(fx + (Math.random() - 0.5) * 20, fy + fLen);
+    ctx.lineTo(fx + (Math.random() - 0.5) * 15, fy + fLen);
     ctx.stroke();
 
     bCtx.strokeStyle = '#101010';
-    bCtx.lineWidth = ctx.lineWidth;
+    bCtx.lineWidth = 2;
     bCtx.beginPath();
     bCtx.moveTo(fx, fy);
-    bCtx.lineTo(fx + (Math.random() - 0.5) * 20, fy + fLen);
+    bCtx.lineTo(fx + (Math.random() - 0.5) * 15, fy + fLen);
     bCtx.stroke();
   }
 
   // Lichen & alpine moss flecks
-  for (let m = 0; m < 50; m++) {
+  for (let m = 0; m < 15; m++) {
     const mx = Math.random() * w;
     const my = Math.random() * h;
     ctx.fillStyle = 'rgba(70, 85, 55, 0.45)';
     ctx.beginPath();
-    ctx.arc(mx, my, 4 + Math.random() * 12, 0, Math.PI * 2);
+    ctx.arc(mx, my, 4 + Math.random() * 8, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -190,8 +186,8 @@ export function getMountainRockTextures() {
 export function getGrassTextures() {
   if (textureCache.has('grass')) return textureCache.get('grass');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -209,10 +205,10 @@ export function getGrassTextures() {
   bCtx.fillRect(0, 0, w, h);
 
   // Soft moss & soil undertones
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 15; i++) {
     const x = Math.random() * w;
     const y = Math.random() * h;
-    const r = 20 + Math.random() * 40;
+    const r = 15 + Math.random() * 25;
     const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
     grd.addColorStop(0, 'rgba(65, 95, 55, 0.5)');
     grd.addColorStop(1, 'rgba(40, 60, 30, 0)');
@@ -220,8 +216,8 @@ export function getGrassTextures() {
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
 
-  // Thousands of fine grass blades
-  for (let b = 0; b < 1200; b++) {
+  // Fine grass blades (optimized for instant startup)
+  for (let b = 0; b < 180; b++) {
     const bx = Math.random() * w;
     const by = Math.random() * h;
     const g = 60 + Math.floor(Math.random() * 55);
@@ -232,14 +228,14 @@ export function getGrassTextures() {
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(bx, by);
-    ctx.lineTo(bx + (Math.random() - 0.5) * 4, by - (4 + Math.random() * 7));
+    ctx.lineTo(bx + (Math.random() - 0.5) * 3, by - (3 + Math.random() * 5));
     ctx.stroke();
 
     bCtx.strokeStyle = g > 85 ? '#b8b8b8' : '#505050';
     bCtx.lineWidth = 1;
     bCtx.beginPath();
     bCtx.moveTo(bx, by);
-    bCtx.lineTo(bx + (Math.random() - 0.5) * 4, by - (4 + Math.random() * 7));
+    bCtx.lineTo(bx + (Math.random() - 0.5) * 3, by - (3 + Math.random() * 5));
     bCtx.stroke();
   }
 
@@ -260,8 +256,8 @@ export function getGrassTextures() {
 export function getCobblestoneTextures() {
   if (textureCache.has('cobble')) return textureCache.get('cobble');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -278,29 +274,29 @@ export function getCobblestoneTextures() {
   bCtx.fillStyle = '#202020';
   bCtx.fillRect(0, 0, w, h);
 
-  const cols = 12;
-  const rows = 12;
+  const cols = 6;
+  const rows = 6;
   const cw = w / cols;
   const ch = h / rows;
 
   for (let r = 0; r < rows; r++) {
     const rowOffset = (r % 2) * (cw * 0.5);
     for (let c = -1; c <= cols; c++) {
-      const cx = c * cw + rowOffset + (Math.random() - 0.5) * 3;
-      const cy = r * ch + (Math.random() - 0.5) * 3;
-      const stoneW = cw - 4;
-      const stoneH = ch - 4;
+      const cx = c * cw + rowOffset + (Math.random() - 0.5) * 2;
+      const cy = r * ch + (Math.random() - 0.5) * 2;
+      const stoneW = cw - 3;
+      const stoneH = ch - 3;
 
       const shade = 80 + Math.floor(Math.random() * 45);
       ctx.fillStyle = `rgb(${shade + 4},${shade},${shade - 2})`;
       ctx.beginPath();
-      ctx.roundRect(cx + 2, cy + 2, stoneW, stoneH, 4);
+      ctx.roundRect(cx + 2, cy + 2, stoneW, stoneH, 3);
       ctx.fill();
 
       // Bump: Rounded stone top is bright, edges dark
       bCtx.fillStyle = '#b0b0b0';
       bCtx.beginPath();
-      bCtx.roundRect(cx + 3, cy + 3, stoneW - 2, stoneH - 2, 4);
+      bCtx.roundRect(cx + 3, cy + 3, stoneW - 2, stoneH - 2, 3);
       bCtx.fill();
     }
   }
@@ -322,8 +318,8 @@ export function getCobblestoneTextures() {
 export function getSlateRoofTextures() {
   if (textureCache.has('slateRoof')) return textureCache.get('slateRoof');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -339,9 +335,9 @@ export function getSlateRoofTextures() {
   bCtx.fillStyle = '#303030';
   bCtx.fillRect(0, 0, w, h);
 
-  const rows = 20;
+  const rows = 8;
   const rh = h / rows;
-  const cols = 14;
+  const cols = 6;
   const cw = w / cols;
 
   for (let r = 0; r < rows; r++) {
@@ -353,9 +349,8 @@ export function getSlateRoofTextures() {
       ctx.fillStyle = `rgb(${tileShade},${tileShade + 6},${tileShade + 14})`;
       ctx.fillRect(x + 1, y + 1, cw - 2, rh - 2);
 
-      // Shingle bevel edge
       ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.fillRect(x + 1, y + rh - 3, cw - 2, 2);
+      ctx.fillRect(x + 1, y + rh - 2, cw - 2, 2);
 
       bCtx.fillStyle = '#909090';
       bCtx.fillRect(x + 1, y + 1, cw - 2, rh - 2);
@@ -379,8 +374,8 @@ export function getSlateRoofTextures() {
 export function getCharbaghBrickTextures() {
   if (textureCache.has('charbaghBrick')) return textureCache.get('charbaghBrick');
 
-  const w = 512;
-  const h = 512;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -396,9 +391,9 @@ export function getCharbaghBrickTextures() {
   bCtx.fillStyle = '#202020';
   bCtx.fillRect(0, 0, w, h);
 
-  const rows = 24;
+  const rows = 8;
   const rh = h / rows;
-  const cols = 12;
+  const cols = 6;
   const cw = w / cols;
 
   for (let r = 0; r < rows; r++) {
@@ -435,8 +430,8 @@ export function getCharbaghBrickTextures() {
 export function getStainedGlassTexture() {
   if (textureCache.has('stainedGlass')) return textureCache.get('stainedGlass');
 
-  const w = 256;
-  const h = 512;
+  const w = 128;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -452,9 +447,9 @@ export function getStainedGlassTexture() {
 
   // Leaded diamond tracery lattice
   ctx.strokeStyle = '#18181b';
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2;
 
-  const step = 28;
+  const step = 32;
   for (let d = -h; d < w + h; d += step) {
     ctx.beginPath();
     ctx.moveTo(d, 0);
@@ -468,7 +463,7 @@ export function getStainedGlassTexture() {
   }
 
   // Outer gothic arch border
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 4;
   ctx.strokeRect(0, 0, w, h);
 
   const texture = new THREE.CanvasTexture(canvas);

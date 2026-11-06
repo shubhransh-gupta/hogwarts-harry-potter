@@ -22,10 +22,10 @@ class HogwartsGame {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'default'
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -55,6 +55,13 @@ class HogwartsGame {
 
     this.initControls();
     this.initWindowResize();
+
+    // Pause physics/rendering if user switches tabs to save battery & CPU
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.clock.getDelta(); // flush accumulated delta
+      }
+    });
 
     // Start render loop
     this.animate = this.animate.bind(this);
@@ -363,6 +370,15 @@ class HogwartsGame {
   animate() {
     requestAnimationFrame(this.animate);
 
+    // 0a. Zero background CPU/GPU usage if user switches tab or minimizes window
+    if (document.hidden) return;
+
+    // 0b. Zero background 3D simulation/rendering while user is browsing Home Screen
+    const homeEl = document.getElementById('home');
+    if (homeEl && !homeEl.hidden && !homeEl.classList.contains('lifting')) {
+      return;
+    }
+
     // If game is paused in pause modal, render scene without simulating physics
     if (this.hudController.isPaused) {
       this.renderer.render(this.scene, this.camera);
@@ -386,9 +402,9 @@ class HogwartsGame {
     // 4. Update Wand Magic Particles, Trailing Ribbons & Screen Shake
     this.wandMagic.update(delta, elapsed, this.camera);
 
-    // 5. Update NPC Crowd Animations & Sorting Hat
+    // 5. Update NPC Crowd Animations & Sorting Hat (distance culled)
     if (this.npcManager) {
-      this.npcManager.update(delta, elapsed);
+      this.npcManager.update(delta, elapsed, this.player.position);
     }
 
     // 6. Update Horcrux Quest, Spinning Galleons & Mystery Boxes

@@ -56,8 +56,8 @@ export class SkyDome {
   }
 
   setTimeOfDay(timeId) {
-    const w = 1024;
-    const h = 512;
+    const w = 512;
+    const h = 256;
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
@@ -73,9 +73,9 @@ export class SkyDome {
       ctx.fillStyle = skyGrd;
       ctx.fillRect(0, 0, w, h);
 
-      // Thousands of twinkling Himalayan stars
+      // Twinkling Himalayan stars (optimized count)
       ctx.fillStyle = '#ffffff';
-      for (let s = 0; s < 950; s++) {
+      for (let s = 0; s < 160; s++) {
         const sx = Math.random() * w;
         const sy = Math.random() * (h * 0.72);
         const sr = Math.random() * 1.5;

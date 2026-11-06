@@ -149,54 +149,44 @@ export const HOGWARTS_REALMS = [
   }
 ];
 
-// 3D Perspective Diorama Stage for the Active Chapter
+// 3D Perspective Diorama Stage for the Active Chapter (Ultra-lightweight)
 class HeroDioramaStage {
   constructor(canvas) {
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: false,
       alpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'low-power'
     });
-    this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setPixelRatio(1);
+    this.renderer.shadowMap.enabled = false;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
     this.camera.position.set(0, 1.25, 3.8);
     this.camera.lookAt(0, 0.05, 0);
 
-    // Warm Hogwarts Key Lighting
-    this.keyLight = new THREE.DirectionalLight(0xffeedb, 3.0);
+    // Warm Hogwarts Key Lighting (zero shadow map overhead)
+    this.keyLight = new THREE.DirectionalLight(0xffeedb, 2.5);
     this.keyLight.position.set(2.5, 3.5, 2.5);
-    this.keyLight.castShadow = true;
-    this.keyLight.shadow.mapSize.width = 1024;
-    this.keyLight.shadow.mapSize.height = 1024;
+    this.keyLight.castShadow = false;
     this.scene.add(this.keyLight);
 
     // Ambient mountain moonlight fill
-    this.fillLight = new THREE.DirectionalLight(0x8fa8d6, 1.4);
+    this.fillLight = new THREE.DirectionalLight(0x8fa8d6, 1.2);
     this.fillLight.position.set(-2.5, 1.2, -1.5);
     this.scene.add(this.fillLight);
 
-    // Golden runic backlight
-    this.backLight = new THREE.PointLight(0xd4af37, 2.2, 8);
-    this.backLight.position.set(0, -0.2, -1.4);
-    this.scene.add(this.backLight);
-
-    // Warm Lumos candle flame light
-    this.candleLight = new THREE.PointLight(0xf59e0b, 1.8, 6);
-    this.candleLight.position.set(0.6, 0.8, 1.2);
-    this.scene.add(this.candleLight);
+    // Subtle hemisphere ambient fill
+    this.hemiLight = new THREE.HemisphereLight(0xfffaed, 0x14161f, 0.85);
+    this.scene.add(this.hemiLight);
 
     // Base obsidian stage disc
-    const stageGeo = new THREE.CylinderGeometry(1.25, 1.35, 0.12, 36);
+    const stageGeo = new THREE.CylinderGeometry(1.25, 1.35, 0.12, 24);
     const stageMat = new THREE.MeshToonMaterial({ color: 0x14161f });
     const stageMesh = new THREE.Mesh(stageGeo, stageMat);
     stageMesh.position.y = -0.56;
-    stageMesh.receiveShadow = true;
     this.scene.add(stageMesh);
 
     const rimGeo = new THREE.TorusGeometry(1.3, 0.035, 10, 48);
@@ -340,9 +330,15 @@ class HeroDioramaStage {
 
   animate() {
     if (!this.running) return;
-    requestAnimationFrame(this.animate);
+    this.animId = requestAnimationFrame(this.animate);
+
+    if (document.hidden) return;
 
     const now = performance.now();
+    // Cap preview diorama to 30 FPS to save CPU/GPU cycles
+    if (this.lastRenderTime && now - this.lastRenderTime < 33) return;
+    this.lastRenderTime = now;
+
     const delta = Math.min(0.1, (now - this.lastTime) / 1000);
     this.lastTime = now;
 
@@ -376,23 +372,32 @@ class HeroDioramaStage {
       this.particles.rotation.y += delta * 0.1;
     }
 
-    // Candle flame flicker
-    if (this.candleLight) {
-      this.candleLight.intensity = 1.6 + Math.sin(now * 0.007) * 0.3 + Math.cos(now * 0.013) * 0.2;
-    }
-
     this.renderer.render(this.scene, this.camera);
   }
 
   stop() {
     this.running = false;
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
   }
 
   resume() {
     if (!this.running) {
       this.running = true;
       this.lastTime = performance.now();
-      requestAnimationFrame(this.animate);
+      this.animId = requestAnimationFrame(this.animate);
+    }
+  }
+
+  dispose() {
+    this.stop();
+    if (this.renderer) {
+      try {
+        this.renderer.dispose();
+        this.renderer.forceContextLoss();
+      } catch (e) {}
     }
   }
 }
@@ -719,7 +724,10 @@ export class HomeScreen {
     this.root.classList.add('lifting');
     await new Promise(r => setTimeout(r, 650));
     this.root.hidden = true;
-    this.stage.stop();
+    if (this.stage) {
+      this.stage.dispose();
+      this.stage = null;
+    }
 
     if (this.onRealmChosen) {
       this.onRealmChosen(realm);
@@ -729,7 +737,15 @@ export class HomeScreen {
   show() {
     this.root.hidden = false;
     this.root.classList.remove('lifting');
-    this.stage.resume();
-    this.stage.resize();
+    if (!this.stage) {
+      this.canvas = document.getElementById('home-c');
+      if (this.canvas) {
+        this.stage = new HeroDioramaStage(this.canvas);
+        this.stage.setModel(this.realms[this.currentIndex]);
+      }
+    } else {
+      this.stage.resume();
+      this.stage.resize();
+    }
   }
 }
